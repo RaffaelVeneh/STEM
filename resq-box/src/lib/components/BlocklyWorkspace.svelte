@@ -143,4 +143,12 @@
   :global(.blocklyZoom > image) {
     border-radius: 0.5rem;
   }
+
+  /* Optional: Make workspace scrollbar less prominent */
+  :global(.blocklyScrollbarBackground) {
+    opacity: 0.15;
+  }
+  :global(.blocklyScrollbarBackground:hover) {
+    opacity: 0.35;
+  }
 </style>
