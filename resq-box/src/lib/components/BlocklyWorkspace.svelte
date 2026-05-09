@@ -27,8 +27,8 @@
       css: true,
       media: 'https://blockly-demo.appspot.com/static/media/',
       grid: { spacing: 20, length: 3, colour: '#E8E8E8', snap: true },
-      zoom: { controls: true, wheel: true, startScale: 1.0, maxScale: 3, minScale: 0.3, scaleSpeed: 1.2 },
-      move: { scrollbars: { horizontal: true, vertical: true }, drag: true, wheel: false },
+      zoom: { controls: true, wheel: true, startScale: 1.0, maxScale: 3, minScale: 0.3, scaleSpeed: 1.2, pinch: true },
+      move: { scrollbars: true, drag: true, wheel: true },
       renderer: 'zelos',
       theme: Blockly.Theme.defineTheme('resqbox', {
         base: Blockly.Themes.Zelos,
@@ -50,26 +50,6 @@
       onCodeGenerated(code);
       onWorkspaceChanged(workspace);
     });
-
-    // Fix 4: Lock flyout block size at 1.0 regardless of canvas zoom
-    const origZoom = workspace.zoom.bind(workspace);
-    workspace.zoom = function (...args) {
-      origZoom(...args);
-      const flyout = this.getFlyout();
-      if (flyout?.getWorkspace()) {
-        flyout.getWorkspace().scale = 1.0;
-      }
-    };
-    // Also handle scroll zoom
-    workspace.scroll = workspace.scroll.bind(workspace);
-    const origSetScale = workspace.setScale.bind(workspace);
-    workspace.setScale = function (newScale) {
-      origSetScale(newScale);
-      const flyout = this.getFlyout();
-      if (flyout?.getWorkspace()) {
-        flyout.getWorkspace().scale = 1.0;
-      }
-    };
 
     if (initialXml) {
       try {
@@ -142,13 +122,5 @@
 
   :global(.blocklyZoom > image) {
     border-radius: 0.5rem;
-  }
-
-  /* Optional: Make workspace scrollbar less prominent */
-  :global(.blocklyScrollbarBackground) {
-    opacity: 0.15;
-  }
-  :global(.blocklyScrollbarBackground:hover) {
-    opacity: 0.35;
   }
 </style>
