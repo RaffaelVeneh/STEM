@@ -1,0 +1,124 @@
+@import "tailwindcss";
+
+/* ===== RESQ-BOX Playful Base Styles ===== */
+
+@layer base {
+  * {
+    @apply transition-colors duration-200;
+  }
+
+  body {
+    @apply overflow-hidden select-none;
+    -webkit-app-region: no-drag;
+  }
+
+  /* Custom scrollbar — playful rounded */
+  ::-webkit-scrollbar {
+    width: 8px;
+  }
+  ::-webkit-scrollbar-track {
+    @apply bg-siaga-belly rounded-full;
+  }
+  ::-webkit-scrollbar-thumb {
+    @apply bg-safety-orange/50 rounded-full;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-safety-orange;
+  }
+}
+
+@layer components {
+  /* Card component */
+  .card {
+    @apply bg-white rounded-2xl shadow-md p-6 border-2 border-ocean-foam/30;
+  }
+
+  .card-hover {
+    @apply hover:shadow-lg hover:border-safety-yellow/50 hover:-translate-y-1 transition-all duration-300;
+  }
+
+  /* Button variants */
+  .btn {
+    @apply px-6 py-3 rounded-xl font-display font-semibold text-lg
+           transition-all duration-200 active:scale-95
+           focus:outline-none focus:ring-4 focus:ring-safety-yellow/50;
+  }
+
+  .btn-primary {
+    @apply btn bg-safety-orange text-white hover:bg-safety-orange/90 shadow-md;
+  }
+
+  .btn-play {
+    @apply btn bg-safety-green text-white hover:bg-safety-green/90 shadow-md;
+  }
+
+  .btn-danger {
+    @apply btn bg-safety-red text-white hover:bg-safety-red/90 shadow-md;
+  }
+
+  .btn-ghost {
+    @apply btn bg-transparent text-earth-brown hover:bg-ocean-foam/30;
+  }
+
+  /* Badge */
+  .badge {
+    @apply inline-flex items-center gap-2 px-3 py-1 rounded-full
+           font-display font-semibold text-sm;
+  }
+
+  .badge-gold {
+    @apply badge bg-safety-yellow/20 text-earth-brown border border-safety-yellow;
+  }
+
+  .badge-xp {
+    @apply badge bg-safety-green/20 text-ocean-deep border border-safety-green/50;
+  }
+
+  /* Quest card */
+  .quest-card {
+    @apply card card-hover cursor-pointer relative overflow-hidden;
+  }
+
+  .quest-card.locked {
+    @apply opacity-50 cursor-not-allowed hover:shadow-md hover:translate-y-0;
+  }
+
+  .quest-card.completed {
+    @apply border-safety-green border-2;
+  }
+
+  /* XP Bar */
+  .xp-bar {
+    @apply h-3 rounded-full bg-ocean-foam overflow-hidden;
+  }
+
+  .xp-bar-fill {
+    @apply h-full rounded-full bg-gradient-to-r from-safety-orange to-safety-yellow
+           transition-all duration-700 ease-out;
+  }
+
+  /* Siaga mascot area */
+  .mascot-bubble {
+    @apply bg-white rounded-2xl rounded-bl-sm shadow-lg p-4
+           border-2 border-safety-yellow/30 relative;
+  }
+
+  .mascot-bubble::after {
+    content: '';
+    @apply absolute -bottom-3 left-6 w-0 h-0
+           border-l-[12px] border-l-transparent
+           border-r-[12px] border-r-transparent
+           border-t-[14px] border-t-white;
+  }
+}
+
+/* ===== Animations ===== */
+
+@keyframes confetti-fall {
+  0% { transform: translateY(-100%) rotate(0deg); opacity: 1; }
+  100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+}
+
+.confetti-piece {
+  animation: confetti-fall 2s ease-in forwards;
+}
