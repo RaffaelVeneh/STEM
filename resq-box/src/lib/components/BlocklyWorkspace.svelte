@@ -112,6 +112,11 @@
     box-shadow: 0 4px 12px rgba(0,0,0,0.1);
   }
 
+  /* Hide flyout scrollbar when flyout is closed (Blockly keeps it in DOM) */
+  :global(.blocklyFlyout:not([style*="visibility: visible"])) {
+    overflow: hidden !important;
+  }
+
   :global(.blocklyMainBackground) {
     border-radius: 1rem;
   }
@@ -122,5 +127,15 @@
 
   :global(.blocklyZoom > image) {
     border-radius: 0.5rem;
+  }
+
+  /* Hide flyout scrollbar when flyout is hidden */
+  :global(.blocklyFlyout .blocklyScrollbarHorizontal),
+  :global(.blocklyFlyout .blocklyScrollbarVertical) {
+    display: none;
+  }
+  :global(.blocklyFlyout[style*="visibility: visible"] .blocklyScrollbarHorizontal),
+  :global(.blocklyFlyout[style*="visibility: visible"] .blocklyScrollbarVertical) {
+    display: block;
   }
 </style>
