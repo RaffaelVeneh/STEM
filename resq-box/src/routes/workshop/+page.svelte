@@ -33,37 +33,73 @@
     generatedCode = code;
   }
 
-  // Simulator context (logs to console; Phase 3 will wire to Canvas)
+  // Simulator context — WRITES TO VISIBLE LOG, not console
+  let simLog = $state([]);
+  let simSensorValues = $state({ water: 45, vibration: 25, button: false });
+
+  function addLog(msg, type = 'info') {
+    simLog = [...simLog.slice(-49), { msg, type, time: Date.now() }];
+  }
+
   const sim = {
     led: {
-      on(color) { console.log(`💡 LED ${color} ON`); },
-      off(color) { console.log(`💡 LED ${color} OFF`); },
+      on(color) {
+        addLog(`💡 LED ${color} NYALA`, 'led');
+      },
+      off(color) {
+        addLog(`💡 LED ${color} MATI`, 'led');
+      },
       async blink(color, times, delayFn) {
         for (let i = 0; i < times; i++) {
-          console.log(`💡 LED ${color} BLINK ${i + 1}/${times}`);
+          addLog(`💡 LED ${color} KEDIP ${i + 1}/${times}`, 'led');
+          await delayFn(300);
+          addLog(`💡 LED ${color} MATI`, 'led');
           await delayFn(300);
         }
       },
     },
     buzzer: {
-      beep(freq, dur) { console.log(`🔊 Buzzer ${freq}Hz ${dur}ms`); },
-      off() { console.log('🔊 Buzzer OFF'); },
+      beep(freq, dur) {
+        addLog(`🔊 Buzzer BUNYI ${freq}Hz ${dur}ms`, 'buzzer');
+      },
+      off() {
+        addLog('🔊 Buzzer DIAM', 'buzzer');
+      },
       async pattern(type, delayFn) {
-        console.log(`🔊 Buzzer pattern: ${type}`);
+        addLog(`🔊 Buzzer POLA ${type} dimulai`, 'buzzer');
         await delayFn(1000);
+        addLog('🔊 Buzzer POLA selesai', 'buzzer');
       },
     },
     servo: {
-      rotate(angle) { console.log(`⚙️ Servo → ${angle}°`); },
+      rotate(angle) {
+        addLog(`⚙️ Servo PUTAR ke ${angle}°`, 'servo');
+      },
     },
     lcd: {
-      print(text) { console.log(`📟 LCD: "${text}"`); },
-      clear() { console.log('📟 LCD clear'); },
+      print(text) {
+        addLog(`📟 LCD: "${text}"`, 'lcd');
+      },
+      clear() {
+        addLog('📟 LCD dibersihkan', 'lcd');
+      },
     },
     sensors: {
-      water() { return 45; },
-      vibration() { return 25; },
-      buttonPressed() { return false; },
+      water() {
+        const v = simSensorValues.water;
+        addLog(`💧 Sensor Air membaca: ${v}%`, 'sensor');
+        return v;
+      },
+      vibration() {
+        const v = simSensorValues.vibration;
+        addLog(`📳 Sensor Getar membaca: ${v}`, 'sensor');
+        return v;
+      },
+      buttonPressed() {
+        const v = simSensorValues.button;
+        addLog(`🚨 Tombol Darurat: ${v ? 'DITEKAN' : 'TIDAK'}`, 'sensor');
+        return v;
+      },
     },
     delay: (ms) => new Promise((r) => setTimeout(r, ms)),
   };
@@ -215,21 +251,28 @@
     </div>
   {/if}
   <!-- Toolbar -->
-  <div class="flex items-center justify-between shrink-0">
-    <div class="flex items-center gap-3">
-      <h2 class="font-display font-bold text-2xl text-ocean-deep">🧩 Workshop Coding</h2>
-      <span class="badge {simMode ? 'badge-xp' : 'badge-gold'} text-xs">
-        {simMode ? '🔌 Simulasi' : '🔧 Hardware'}
+  <div style="display:flex; align-items:center; justify-content:space-between; flex-shrink:0; padding:0.75rem 1.25rem; border-radius:1.25rem; background: linear-gradient(135deg, var(--color-ocean-deep), var(--color-ocean-wave));">
+    <div style="display:flex; align-items:center; gap:0.75rem;">
+      <h2 style="font-family:var(--font-display); font-weight:800; font-size:1.25rem; color:#fff; margin:0;">
+        🧩 Workshop Coding
+      </h2>
+      <span class="badge-xp" style="font-size:0.7rem; background:rgba(255,255,255,0.15); color:#fff; border:1px solid rgba(255,255,255,0.2); padding:0.2rem 0.7rem;">
+        🔌 Simulasi
       </span>
+      {#if activeQuest}
+        <span class="badge-gold" style="font-size:0.7rem; background:rgba(255,183,3,0.2); color:var(--color-safety-yellow); border:1px solid var(--color-safety-yellow);">
+          🎯 Misi Aktif
+        </span>
+      {/if}
     </div>
-    <div class="flex gap-2">
-      <button class="btn-ghost text-sm" onclick={handleLoad}>📂 Buka</button>
-      <button class="btn-ghost text-sm" onclick={handleSave} disabled={saveStatus === 'saving'}>
-        {saveStatus === 'saving' ? '⏳ ...' : saveStatus === 'saved' ? '✅ Tersimpan!' : saveStatus === 'error' ? '❌ Gagal' : '💾 Simpan'}
+    <div style="display:flex; gap:0.5rem;">
+      <button class="btn-ghost" style="color:#fff; font-size:0.8rem;" onclick={handleLoad}>📂 Buka</button>
+      <button class="btn-ghost" style="color:#fff; font-size:0.8rem;" onclick={handleSave} disabled={saveStatus === 'saving'}>
+        {saveStatus === 'saving' ? '⏳ ...' : saveStatus === 'saved' ? '✅ Tersimpan!' : '💾 Simpan'}
       </button>
-      <button class="btn-ghost text-sm" onclick={handleClear}>🗑️ Bersihkan</button>
-      <button class="btn-ghost text-sm" onclick={handleExportCode}>📥 Export .ino</button>
-      <button class="btn-play text-sm" onclick={handleRun} disabled={isRunning}>
+      <button class="btn-ghost" style="color:#fff; font-size:0.8rem;" onclick={handleClear}>🗑️</button>
+      <button class="btn-ghost" style="color:#fff; font-size:0.8rem;" onclick={handleExportCode}>📥 .ino</button>
+      <button class="btn-play" style="font-size:0.85rem; padding:0.6rem 1.25rem;" onclick={handleRun} disabled={isRunning}>
         {isRunning ? '⏳ Running...' : '▶️ Jalankan'}
       </button>
     </div>
@@ -245,37 +288,80 @@
       />
     </div>
 
-    <!-- Code Preview -->
-    <div class="w-80 shrink-0 flex flex-col gap-3">
-      <div class="flex-1 bg-[#1D3557] rounded-2xl p-4 overflow-y-auto flex flex-col min-h-0">
-        <h3 class="font-display font-semibold text-sm text-ocean-foam mb-3 uppercase tracking-wide flex items-center gap-2 shrink-0">
-          📝 Kode Arduino (.ino)
+    <!-- RIGHT PANEL: Sim Log + Sensors + Code -->
+    <div style="width:300px; flex-shrink:0; display:flex; flex-direction:column; gap:0.65rem;">
+      
+      <!-- SIMULATION OUTPUT LOG -->
+      <div style="flex:1; min-height:0; display:flex; flex-direction:column; border-radius:1.25rem; overflow:hidden; background:#1D3557; box-shadow:0 4px 16px rgba(0,0,0,0.1);">
+        <div style="display:flex; align-items:center; justify-content:space-between; padding:0.7rem 1rem; background:rgba(255,255,255,0.06); border-bottom:1px solid rgba(255,255,255,0.08); flex-shrink:0;">
+          <h3 style="font-family:var(--font-display); font-weight:700; font-size:0.7rem; text-transform:uppercase; letter-spacing:0.06em; color:var(--color-ocean-foam); margin:0;">
+            📟 Output Simulasi
+          </h3>
+          <span style="font-size:0.65rem; color:var(--color-ocean-foam); opacity:0.5;">{simLog.length} events</span>
+        </div>
+        <div style="flex:1; overflow-y:auto; padding:0.5rem;">
+          {#if simLog.length === 0}
+            <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:100%; opacity:0.4; text-align:center; padding:1rem;">
+              <div style="font-size:2rem; margin-bottom:0.5rem;">▶️</div>
+              <p style="font-size:0.75rem; color:var(--color-ocean-foam); margin:0;">Klik <strong style="color:var(--color-safety-green);">▶️ Jalankan</strong> untuk melihat simulasi</p>
+            </div>
+          {:else}
+            {#each simLog as entry}
+              {@const colors = { led: '#FFC107', buzzer: '#FF6B35', sensor: '#A8DADC', servo: '#2EC4B6', lcd: '#FFD60A', error: '#E63946', info: '#457B9D' }}
+              <div style="padding:0.35rem 0.5rem; margin-bottom:0.2rem; border-radius:0.5rem; font-size:0.72rem; font-family:monospace; color:{colors[entry.type] || '#A8DADC'}; background:rgba(255,255,255,0.03); border-left:3px solid {colors[entry.type] || '#A8DADC'};">
+                {entry.msg}
+              </div>
+            {/each}
+          {/if}
+        </div>
+      </div>
+
+      <!-- SENSOR CONTROLS -->
+      <div style="flex-shrink:0; border-radius:1rem; padding:0.85rem; background:#fff; border:2px solid color-mix(in srgb, var(--color-ocean-foam) 40%, transparent); box-shadow:0 2px 8px rgba(0,0,0,0.04);">
+        <h3 style="font-family:var(--font-display); font-weight:700; font-size:0.7rem; text-transform:uppercase; letter-spacing:0.04em; color:var(--color-safety-orange); margin:0 0 0.6rem;">
+          🎮 Sensor Simulasi
+        </h3>
+        <div style="display:flex; flex-direction:column; gap:0.5rem;">
+          <div>
+            <div style="display:flex; justify-content:space-between; font-size:0.65rem; font-weight:600; color:var(--color-earth-brown); margin-bottom:0.15rem;">
+              <span>💧 Air</span><span>{simSensorValues.water}%</span>
+            </div>
+            <input type="range" min="0" max="100" value={simSensorValues.water}
+              oninput={(e) => setSensorValue('water', parseInt(e.target.value))}
+              style="width:100%; height:5px; accent-color:var(--color-ocean-wave); cursor:pointer;" />
+          </div>
+          <div>
+            <div style="display:flex; justify-content:space-between; font-size:0.65rem; font-weight:600; color:var(--color-earth-brown); margin-bottom:0.15rem;">
+              <span>📳 Getaran</span><span>{simSensorValues.vibration}</span>
+            </div>
+            <input type="range" min="0" max="100" value={simSensorValues.vibration}
+              oninput={(e) => setSensorValue('vibration', parseInt(e.target.value))}
+              style="width:100%; height:5px; accent-color:var(--color-safety-yellow); cursor:pointer;" />
+          </div>
           <button
-            class="ml-auto text-xs bg-ocean-foam/20 hover:bg-ocean-foam/40 text-ocean-foam px-2 py-0.5 rounded-lg transition-colors"
-            onclick={handleExportCode}
-          >📥</button>
+            style="width:100%; padding:0.5rem; border-radius:0.6rem; border:2px solid var(--color-safety-red); background:{simSensorValues.button ? 'var(--color-safety-red)' : 'transparent'}; color:{simSensorValues.button ? '#fff' : 'var(--color-safety-red)'}; font-family:var(--font-display); font-weight:700; font-size:0.7rem; cursor:pointer; transition:all 0.15s;"
+            onmousedown={() => setSensorValue('button', true)}
+            onmouseup={() => setSensorValue('button', false)}
+            onmouseleave={() => setSensorValue('button', false)}
+          >
+            🚨 Tombol Darurat {simSensorValues.button ? 'DITEKAN' : ''}
+          </button>
+        </div>
+      </div>
+
+      <!-- CODE PREVIEW (compact) -->
+      <div style="flex-shrink:0; border-radius:1rem; padding:0.75rem; background:#1D3557; max-height:150px; overflow-y:auto;">
+        <h3 style="font-family:var(--font-display); font-weight:700; font-size:0.7rem; text-transform:uppercase; letter-spacing:0.04em; color:var(--color-ocean-foam); margin:0 0 0.4rem; display:flex; justify-content:space-between;">
+          📝 .ino
+          <button onclick={handleExportCode} style="background:none; border:none; color:var(--color-ocean-foam); cursor:pointer; font-size:0.75rem; opacity:0.6;">📥</button>
         </h3>
         {#if generatedCode && !generatedCode.startsWith('// Seret blok')}
-          <pre class="text-xs text-ocean-foam font-mono whitespace-pre-wrap flex-1 overflow-y-auto">{generatedCode}</pre>
+          <pre style="font-size:0.65rem; color:var(--color-ocean-foam); font-family:monospace; white-space:pre-wrap; margin:0; opacity:0.8;">{generatedCode}</pre>
         {:else}
-          <div class="flex-1 flex items-center justify-center text-ocean-foam/40 text-sm text-center">
-            <div>
-              <div class="text-4xl mb-2">🧩</div>
-              <p>Seret blok dari toolbox ke canvas untuk melihat kode Arduino</p>
-            </div>
-          </div>
+          <p style="font-size:0.7rem; color:var(--color-ocean-foam); opacity:0.4; margin:0;">Seret blok untuk melihat kode Arduino...</p>
         {/if}
       </div>
 
-      <div class="card p-4 shrink-0">
-        <h4 class="font-display font-semibold text-sm text-safety-orange mb-2">💡 Tips dari Siaga</h4>
-        <ul class="text-xs text-earth-brown/70 space-y-1">
-          <li>🖱️ <strong>Seret</strong> blok dari toolbox</li>
-          <li>🔗 <strong>Sambungkan</strong> seperti puzzle</li>
-          <li>▶️ Klik <strong>Jalankan</strong> untuk simulasi</li>
-          <li>💾 <strong>Ctrl+S</strong> untuk menyimpan</li>
-        </ul>
-      </div>
     </div>
   </div>
 
