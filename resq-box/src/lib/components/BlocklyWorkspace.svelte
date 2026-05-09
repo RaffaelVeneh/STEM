@@ -51,15 +51,25 @@
       onWorkspaceChanged(workspace);
     });
 
-    // Fix 4: Lock flyout block size — always at scale 1.0 regardless of canvas zoom
-    workspace.addChangeListener((event) => {
-      if (event.type === 'viewport_change') {
-        const flyout = workspace.getFlyout();
-        if (flyout?.getWorkspace()) {
-          flyout.getWorkspace().scale = 1.0;
-        }
+    // Fix 4: Lock flyout block size at 1.0 regardless of canvas zoom
+    const origZoom = workspace.zoom.bind(workspace);
+    workspace.zoom = function (...args) {
+      origZoom(...args);
+      const flyout = this.getFlyout();
+      if (flyout?.getWorkspace()) {
+        flyout.getWorkspace().scale = 1.0;
       }
-    });
+    };
+    // Also handle scroll zoom
+    workspace.scroll = workspace.scroll.bind(workspace);
+    const origSetScale = workspace.setScale.bind(workspace);
+    workspace.setScale = function (newScale) {
+      origSetScale(newScale);
+      const flyout = this.getFlyout();
+      if (flyout?.getWorkspace()) {
+        flyout.getWorkspace().scale = 1.0;
+      }
+    };
 
     if (initialXml) {
       try {
@@ -122,9 +132,10 @@
     box-shadow: 0 4px 12px rgba(0,0,0,0.1);
   }
 
-  /* Fix 2: Hide flyout completely when not visible — scrollbar disappears */
-  :global(.blocklyFlyout:not([style*="transform: translate(0px"])) {
-    display: none !important;
+  /* Fix: Hide scrollbar on the WORKSPACE (not toolbox) when flyout is closed.
+     Blockly keeps a vertical scrollbar on the workspace SVG. Make it auto instead of scroll. */
+  :global(.blocklyWorkspace > .blocklyBlockCanvas) {
+    overflow: auto;
   }
 
   :global(.blocklyMainBackground) {
@@ -137,10 +148,5 @@
 
   :global(.blocklyZoom > image) {
     border-radius: 0.5rem;
-  }
-
-  /* Fix 4: Lock flyout block size — don't scale with canvas zoom */
-  :global(.blocklyFlyout .blocklyBlockCanvas > g) {
-    transform-origin: 0 0;
   }
 </style>
