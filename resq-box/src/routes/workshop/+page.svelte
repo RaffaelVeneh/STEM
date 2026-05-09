@@ -305,7 +305,10 @@
           <h3 style="font-family:var(--font-display); font-weight:700; font-size:0.7rem; text-transform:uppercase; letter-spacing:0.04em; color:var(--color-ocean-foam); margin:0;">
             📝 Kode Arduino (.ino)
           </h3>
-          <button onclick={handleExportCode} style="background:none; border:none; color:var(--color-ocean-foam); cursor:pointer; font-size:0.7rem; opacity:0.6; padding:0.15rem 0.4rem; border-radius:0.3rem;" onmouseenter="this.style.background='rgba(255,255,255,0.1)'" onmouseleave="this.style.background='none'">📥 Ekspor</button>
+          <button onclick={handleExportCode} style="background:none; border:none; color:var(--color-ocean-foam); cursor:pointer; font-size:0.7rem; opacity:0.6; padding:0.15rem 0.4rem; border-radius:0.3rem; transition:all 0.2s;"
+            onmouseenter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.1)'}
+            onmouseleave={(e) => e.currentTarget.style.background = 'none'}
+          >📥 Ekspor</button>
         </div>
         {#if generatedCode && !generatedCode.startsWith('// Seret blok')}
           <pre style="font-size:0.62rem; color:var(--color-ocean-foam); font-family:monospace; white-space:pre-wrap; margin:0; line-height:1.4; opacity:0.85;">{generatedCode}</pre>
