@@ -51,6 +51,31 @@
       onWorkspaceChanged(workspace);
     });
 
+    // FIX 1: Flyout blocks stay at scale 1.0 when canvas zooms
+    // FIX 2: Ghost scrollbar — hide flyout scrollbars when flyout is collapsed
+    const lockFlyout = () => {
+      const flyout = workspace.getFlyout();
+      if (!flyout) return;
+      const fw = flyout.getWorkspace();
+      if (!fw) return;
+      // Fix 1: always keep flyout at 1.0 scale
+      if (fw.scale !== 1.0) fw.scale = 1.0;
+      // Fix 2: if flyout width is 0 (collapsed), hide its scrollbar elements
+      const flyoutEl = flyout.svgGroup_?.parentElement || flyout.svgGroup_;
+      if (flyoutEl) {
+        const scrollbars = flyoutEl.querySelectorAll('.blocklyScrollbarVertical, .blocklyScrollbarHorizontal');
+        const isVisible = flyoutEl.style.display !== 'none' && flyout.getWidth() > 10;
+        scrollbars.forEach(s => { s.style.display = isVisible ? '' : 'none'; });
+      }
+    };
+    workspace.addChangeListener((event) => {
+      if (event.type === 'viewport_change' || event.type === 'toolbox_item_select') {
+        requestAnimationFrame(lockFlyout);
+      }
+    });
+    // Also run after init
+    setTimeout(lockFlyout, 500);
+
     if (initialXml) {
       try {
         const xml = Blockly.utils.xml.textToDom(initialXml);

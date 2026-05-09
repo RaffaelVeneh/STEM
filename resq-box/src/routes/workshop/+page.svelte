@@ -299,8 +299,8 @@
     <!-- RIGHT PANEL: .ino → Sim Log → Sensors -->
     <div style="width:300px; flex-shrink:0; display:flex; flex-direction:column; gap:0.65rem; min-height:0;">
       
-      <!-- 1. CODE PREVIEW (.ino) — TOP, LARGER -->
-      <div style="flex:0 0 auto; border-radius:1rem; padding:0.85rem; background:#1D3557; max-height:250px; overflow-y:auto; min-height:80px;">
+      <!-- 1. CODE PREVIEW (.ino) — BIGGEST PANEL -->
+      <div style="flex:1 1 auto; min-height:200px; overflow-y:auto; border-radius:1rem; padding:0.85rem; background:#1D3557; display:flex; flex-direction:column;">
         <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:0.4rem;">
           <h3 style="font-family:var(--font-display); font-weight:700; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.04em; color:var(--color-ocean-foam); margin:0;">
             📝 Kode Arduino (.ino)
@@ -319,8 +319,8 @@
         {/if}
       </div>
 
-      <!-- 2. SIMULATION OUTPUT LOG — MIDDLE, SMALLER -->
-      <div style="flex:1 1 auto; min-height:100px; max-height:200px; display:flex; flex-direction:column; border-radius:1.25rem; overflow:hidden; background:#1D3557; box-shadow:0 4px 16px rgba(0,0,0,0.1);">
+      <!-- 2. SIMULATION OUTPUT LOG — SMALL BAR -->
+      <div style="flex:0 0 auto; max-height:120px; min-height:60px; display:flex; flex-direction:column; border-radius:1rem; overflow:hidden; background:#1D3557; box-shadow:0 4px 16px rgba(0,0,0,0.1);">
         <div style="display:flex; align-items:center; justify-content:space-between; padding:0.7rem 1rem; background:rgba(255,255,255,0.06); border-bottom:1px solid rgba(255,255,255,0.08); flex-shrink:0;">
           <h3 style="font-family:var(--font-display); font-weight:700; font-size:0.7rem; text-transform:uppercase; letter-spacing:0.06em; color:var(--color-ocean-foam); margin:0;">
             📟 Output Simulasi
