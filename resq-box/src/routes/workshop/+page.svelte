@@ -41,6 +41,10 @@
     simLog = [...simLog.slice(-49), { msg, type, time: Date.now() }];
   }
 
+  function setSensorValue(key, value) {
+    simSensorValues = { ...simSensorValues, [key]: value };
+  }
+
   const sim = {
     led: {
       on(color) {
@@ -107,12 +111,15 @@
   async function handleRun() {
     if (!workspaceRef || isRunning) return;
     isRunning = true;
+    simLog = [];
+    addLog('▶️ SIMULASI DIMULAI', 'info');
     try {
       const ws = workspaceRef.getWorkspace();
       if (!ws) return;
       await interpretWorkspace(ws, sim);
+      addLog('✅ SIMULASI SELESAI', 'info');
     } catch (e) {
-      console.error('Sim error:', e);
+      addLog('❌ ERROR: ' + e.message, 'error');
     } finally {
       isRunning = false;
     }
@@ -144,6 +151,7 @@
   function handleClear() {
     workspaceRef?.clearWorkspace();
     validationResult = null;
+    simLog = [];
   }
 
   function handleExportCode() {
