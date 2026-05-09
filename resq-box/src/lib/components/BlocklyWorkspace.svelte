@@ -51,30 +51,23 @@
       onWorkspaceChanged(workspace);
     });
 
-    // FIX 1: Flyout blocks stay at scale 1.0 when canvas zooms
-    // FIX 2: Ghost scrollbar — hide flyout scrollbars when flyout is collapsed
-    const lockFlyout = () => {
-      const flyout = workspace.getFlyout();
-      if (!flyout) return;
-      const fw = flyout.getWorkspace();
-      if (!fw) return;
-      // Fix 1: always keep flyout at 1.0 scale
-      if (fw.scale !== 1.0) fw.scale = 1.0;
-      // Fix 2: if flyout width is 0 (collapsed), hide its scrollbar elements
-      const flyoutEl = flyout.svgGroup_?.parentElement || flyout.svgGroup_;
-      if (flyoutEl) {
-        const scrollbars = flyoutEl.querySelectorAll('.blocklyScrollbarVertical, .blocklyScrollbarHorizontal');
-        const isVisible = flyoutEl.style.display !== 'none' && flyout.getWidth() > 10;
-        scrollbars.forEach(s => { s.style.display = isVisible ? '' : 'none'; });
+    // FIX: Toolbox flyout stays at scale 1.0 regardless of canvas zoom
+    // Override flyout.show() to reset scale every time the flyout opens
+    const toolboxEl = workspace.getToolbox();
+    if (toolboxEl) {
+      const flyout = toolboxEl.getFlyout();
+      if (flyout) {
+        const origShow = flyout.show.bind(flyout);
+        flyout.show = function (xmlList) {
+          origShow(xmlList);
+          const fw = this.getWorkspace();
+          if (fw && fw.scale !== 1.0) {
+            fw.scale = 1.0;
+            fw.refreshToolboxSelection?.();
+          }
+        };
       }
-    };
-    workspace.addChangeListener((event) => {
-      if (event.type === 'viewport_change' || event.type === 'toolbox_item_select') {
-        requestAnimationFrame(lockFlyout);
-      }
-    });
-    // Also run after init
-    setTimeout(lockFlyout, 500);
+    }
 
     if (initialXml) {
       try {
@@ -147,5 +140,11 @@
 
   :global(.blocklyZoom > image) {
     border-radius: 0.5rem;
+  }
+
+  /* GHOST SCROLLBAR FIX: .blocklyFlyoutScrollbar is a SIBLING div, not child.
+     It's non-functional. Just hide it always. */
+  :global(.blocklyFlyoutScrollbar) {
+    display: none !important;
   }
 </style>
