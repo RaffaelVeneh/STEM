@@ -299,26 +299,28 @@
     <!-- RIGHT PANEL: .ino → Sim Log → Sensors -->
     <div style="width:300px; flex-shrink:0; display:flex; flex-direction:column; gap:0.65rem; min-height:0;">
       
-      <!-- 1. CODE PREVIEW (.ino) — top, compact -->
-      <div style="flex-shrink:0; border-radius:1rem; padding:0.75rem; background:#1D3557; max-height:130px; overflow-y:auto;">
-        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:0.3rem;">
-          <h3 style="font-family:var(--font-display); font-weight:700; font-size:0.7rem; text-transform:uppercase; letter-spacing:0.04em; color:var(--color-ocean-foam); margin:0;">
+      <!-- 1. CODE PREVIEW (.ino) — TOP, LARGER -->
+      <div style="flex:0 0 auto; border-radius:1rem; padding:0.85rem; background:#1D3557; max-height:250px; overflow-y:auto; min-height:80px;">
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:0.4rem;">
+          <h3 style="font-family:var(--font-display); font-weight:700; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.04em; color:var(--color-ocean-foam); margin:0;">
             📝 Kode Arduino (.ino)
           </h3>
-          <button onclick={handleExportCode} style="background:none; border:none; color:var(--color-ocean-foam); cursor:pointer; font-size:0.7rem; opacity:0.6; padding:0.15rem 0.4rem; border-radius:0.3rem; transition:all 0.2s;"
-            onmouseenter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.1)'}
-            onmouseleave={(e) => e.currentTarget.style.background = 'none'}
-          >📥 Ekspor</button>
+          <button onclick={handleExportCode} style="background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.15); color:var(--color-ocean-foam); cursor:pointer; font-size:0.68rem; padding:0.2rem 0.5rem; border-radius:0.35rem; transition:all 0.2s;"
+            onmouseenter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.18)'}
+            onmouseleave={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.08)'}
+          >📥 Ekspor .ino</button>
         </div>
         {#if generatedCode && !generatedCode.startsWith('// Seret blok')}
-          <pre style="font-size:0.62rem; color:var(--color-ocean-foam); font-family:monospace; white-space:pre-wrap; margin:0; line-height:1.4; opacity:0.85;">{generatedCode}</pre>
+          <pre style="font-size:0.7rem; color:var(--color-ocean-foam); font-family:'Consolas','Courier New',monospace; white-space:pre-wrap; margin:0; line-height:1.45; opacity:0.9;">{generatedCode}</pre>
         {:else}
-          <p style="font-size:0.7rem; color:var(--color-ocean-foam); opacity:0.35; margin:0; font-style:italic;">Seret blok dari toolbox untuk melihat kode Arduino di sini...</p>
+          <p style="font-size:0.75rem; color:var(--color-ocean-foam); opacity:0.35; margin:0; font-style:italic; line-height:1.5;">
+            🧩 Seret blok dari toolbox (kiri) ke canvas untuk melihat kode Arduino yang dihasilkan di sini.
+          </p>
         {/if}
       </div>
 
-      <!-- 2. SIMULATION OUTPUT LOG — middle, flex grow -->
-      <div style="flex:1; min-height:150px; display:flex; flex-direction:column; border-radius:1.25rem; overflow:hidden; background:#1D3557; box-shadow:0 4px 16px rgba(0,0,0,0.1);">
+      <!-- 2. SIMULATION OUTPUT LOG — MIDDLE, SMALLER -->
+      <div style="flex:1 1 auto; min-height:100px; max-height:200px; display:flex; flex-direction:column; border-radius:1.25rem; overflow:hidden; background:#1D3557; box-shadow:0 4px 16px rgba(0,0,0,0.1);">
         <div style="display:flex; align-items:center; justify-content:space-between; padding:0.7rem 1rem; background:rgba(255,255,255,0.06); border-bottom:1px solid rgba(255,255,255,0.08); flex-shrink:0;">
           <h3 style="font-family:var(--font-display); font-weight:700; font-size:0.7rem; text-transform:uppercase; letter-spacing:0.06em; color:var(--color-ocean-foam); margin:0;">
             📟 Output Simulasi

@@ -51,6 +51,16 @@
       onWorkspaceChanged(workspace);
     });
 
+    // Fix 4: Lock flyout block size — always at scale 1.0 regardless of canvas zoom
+    workspace.addChangeListener((event) => {
+      if (event.type === 'viewport_change') {
+        const flyout = workspace.getFlyout();
+        if (flyout?.getWorkspace()) {
+          flyout.getWorkspace().scale = 1.0;
+        }
+      }
+    });
+
     if (initialXml) {
       try {
         const xml = Blockly.utils.xml.textToDom(initialXml);
@@ -112,9 +122,9 @@
     box-shadow: 0 4px 12px rgba(0,0,0,0.1);
   }
 
-  /* Hide flyout scrollbar when flyout is closed (Blockly keeps it in DOM) */
-  :global(.blocklyFlyout:not([style*="visibility: visible"])) {
-    overflow: hidden !important;
+  /* Fix 2: Hide flyout completely when not visible — scrollbar disappears */
+  :global(.blocklyFlyout:not([style*="transform: translate(0px"])) {
+    display: none !important;
   }
 
   :global(.blocklyMainBackground) {
@@ -129,13 +139,8 @@
     border-radius: 0.5rem;
   }
 
-  /* Hide flyout scrollbar when flyout is hidden */
-  :global(.blocklyFlyout .blocklyScrollbarHorizontal),
-  :global(.blocklyFlyout .blocklyScrollbarVertical) {
-    display: none;
-  }
-  :global(.blocklyFlyout[style*="visibility: visible"] .blocklyScrollbarHorizontal),
-  :global(.blocklyFlyout[style*="visibility: visible"] .blocklyScrollbarVertical) {
-    display: block;
+  /* Fix 4: Lock flyout block size — don't scale with canvas zoom */
+  :global(.blocklyFlyout .blocklyBlockCanvas > g) {
+    transform-origin: 0 0;
   }
 </style>

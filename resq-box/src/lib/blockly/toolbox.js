@@ -40,6 +40,14 @@ const toolbox = {
         },
         {
           kind: 'block',
+          type: 'temperature_sensor',
+        },
+        {
+          kind: 'block',
+          type: 'temperature_sensor_value',
+        },
+        {
+          kind: 'block',
           type: 'emergency_button',
         },
       ],
@@ -91,6 +99,18 @@ const toolbox = {
         {
           kind: 'block',
           type: 'if_emergency',
+        },
+        {
+          kind: 'block',
+          type: 'logic_and',
+        },
+        {
+          kind: 'block',
+          type: 'logic_or',
+        },
+        {
+          kind: 'block',
+          type: 'math_compare',
         },
         {
           kind: 'block',

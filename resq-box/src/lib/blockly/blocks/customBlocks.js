@@ -87,6 +87,31 @@ export function defineCustomBlocks() {
     },
   };
 
+  // ─── NEW: Temperature sensor ───
+  Blockly.Blocks['temperature_sensor'] = {
+    init: function () {
+      this.jsonInit({
+        message0: '🌡️ baca suhu',
+        args0: [],
+        output: 'Number',
+        colour: COLORS.sensor,
+        tooltip: 'Membaca suhu lingkungan (°C)',
+      });
+    },
+  };
+
+  Blockly.Blocks['temperature_sensor_value'] = {
+    init: function () {
+      this.jsonInit({
+        message0: '🌡️ suhu %1 °C',
+        args0: [{ type: 'field_number', name: 'VALUE', value: 30, min: -10, max: 60 }],
+        output: 'Number',
+        colour: COLORS.sensor,
+        tooltip: 'Nilai suhu tertentu untuk simulasi',
+      });
+    },
+  };
+
   // ============================================================
   // OUTPUT BLOCKS
   // ============================================================
@@ -320,6 +345,57 @@ export function defineCustomBlocks() {
         nextStatement: null,
         colour: COLORS.control,
         tooltip: 'Ulangi aksi terus menerus',
+      });
+    },
+  };
+
+  // ─── NEW: Logic & Math blocks ───
+  Blockly.Blocks['logic_and'] = {
+    init: function () {
+      this.jsonInit({
+        message0: '%1 DAN %2',
+        args0: [
+          { type: 'input_value', name: 'A', check: 'Boolean' },
+          { type: 'input_value', name: 'B', check: 'Boolean' },
+        ],
+        output: 'Boolean',
+        colour: COLORS.control,
+        tooltip: 'TRUE jika kedua kondisi TRUE',
+      });
+    },
+  };
+
+  Blockly.Blocks['logic_or'] = {
+    init: function () {
+      this.jsonInit({
+        message0: '%1 ATAU %2',
+        args0: [
+          { type: 'input_value', name: 'A', check: 'Boolean' },
+          { type: 'input_value', name: 'B', check: 'Boolean' },
+        ],
+        output: 'Boolean',
+        colour: COLORS.control,
+        tooltip: 'TRUE jika salah satu kondisi TRUE',
+      });
+    },
+  };
+
+  Blockly.Blocks['math_compare'] = {
+    init: function () {
+      this.jsonInit({
+        message0: 'bandingkan %1 %2 %3',
+        args0: [
+          { type: 'input_value', name: 'A', check: 'Number' },
+          {
+            type: 'field_dropdown',
+            name: 'OP',
+            options: [['>', 'GT'], ['<', 'LT'], ['=', 'EQ'], ['≥', 'GTE'], ['≤', 'LTE']],
+          },
+          { type: 'input_value', name: 'B', check: 'Number' },
+        ],
+        output: 'Boolean',
+        colour: COLORS.control,
+        tooltip: 'Bandingkan dua nilai angka',
       });
     },
   };
