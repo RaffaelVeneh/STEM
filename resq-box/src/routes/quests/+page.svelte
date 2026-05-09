@@ -7,17 +7,19 @@
   let quests = $state(QUESTS.map(q => ({ ...q, status: 'locked' })));
   let selectedQuest = $state(null);
   let currentLang = $state('id');
-  let tick = $state(0);
 
-  // Sync quest statuses from store (debounced — only re-runs when store changes)
+  // Sync quest statuses from store — reads only, no writes to selectedQuest
   $effect(() => {
-    void $questStatus; // track dependency
-    void tick;
-    quests = QUESTS.map(q => ({ ...q, status: ($questStatus[q.id] || 'locked') }));
-    // Preserve selected quest reference
+    quests = QUESTS.map(q => ({ ...q, status: $questStatus[q.id] || 'locked' }));
+  });
+
+  // When selected quest's status changes externally, refresh it
+  $effect(() => {
     if (selectedQuest) {
-      const found = quests.find(q => q.id === selectedQuest.id);
-      if (found) selectedQuest = found;
+      const updated = quests.find(q => q.id === selectedQuest.id);
+      if (updated && updated.status !== selectedQuest.status) {
+        selectedQuest = { ...updated };
+      }
     }
   });
 

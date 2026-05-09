@@ -281,7 +281,7 @@
 
   <!-- Celebration Overlay -->
   {#if showCelebration}
-    <div class="fixed inset-0 z-50 flex items-center justify-center" style="background: rgba(0,0,0,0.5);" onclick={() => { showCelebration = false; goto('/quests'); }}>
+    <button type="button" class="fixed inset-0 z-50 flex items-center justify-center w-full border-none cursor-pointer" style="background: rgba(0,0,0,0.5);" onclick={() => { showCelebration = false; goto('/quests'); }}>
       <div style="background: #fff; border-radius: 1.5rem; padding: 2rem; text-align: center; max-width: 24rem; margin: 0 1rem; box-shadow: 0 25px 50px rgba(0,0,0,0.25); animation: popIn 0.5s ease-out;">
         <div class="text-6xl mb-4">🎉</div>
         <h2 class="font-display font-bold text-2xl mb-2" style="color: var(--color-safety-green);">Misi Selesai!</h2>
@@ -292,7 +292,7 @@
         </div>
         <p class="text-xs" style="color: var(--color-earth-brown); opacity: 0.6;">Klik di mana saja untuk lanjut</p>
       </div>
-    </div>
+    </button>
     {#each Array(20) as _, i}
       <div class="confetti-piece" style="position: fixed; top: 0; left: {Math.random() * 100}%; z-index: 40; animation-delay: {Math.random() * 0.5}s; width: {6 + Math.random() * 8}px; height: {6 + Math.random() * 8}px; background: {['#FF6B35','#FFC107','#2EC4B6','#E63946','#FFD60A'][i % 5]}; border-radius: {Math.random() > 0.5 ? '50%' : '2px'};"></div>
     {/each}

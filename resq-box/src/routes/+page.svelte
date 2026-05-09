@@ -84,7 +84,7 @@
       {#each levels as level}
         <button
           class="quest-card text-center p-4 border-none bg-white {level.done ? 'completed' : ''} {level.locked ? 'locked' : ''}"
-          on:click={level.locked ? undefined : () => goto(`/workshop?quest=${level.num}`)}
+          onclick={level.locked ? undefined : () => goto(`/workshop?quest=${level.num}`)}
           disabled={level.locked}
           style="cursor: {level.locked ? 'not-allowed' : 'pointer'}; width: 100%;"
         >
