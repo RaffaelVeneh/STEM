@@ -52,22 +52,21 @@
     });
 
     // FIX: Toolbox flyout stays at scale 1.0 regardless of canvas zoom
-    // Override flyout.show() to reset scale every time the flyout opens
-    const toolboxEl = workspace.getToolbox();
-    if (toolboxEl) {
-      const flyout = toolboxEl.getFlyout();
+    // Continuous check — runs on every animation frame
+    let rafId;
+    const keepFlyoutLocked = () => {
+      const flyout = workspace.getFlyout();
       if (flyout) {
-        const origShow = flyout.show.bind(flyout);
-        flyout.show = function (xmlList) {
-          origShow(xmlList);
-          const fw = this.getWorkspace();
-          if (fw && fw.scale !== 1.0) {
-            fw.scale = 1.0;
-            fw.refreshToolboxSelection?.();
-          }
-        };
+        const fw = flyout.getWorkspace();
+        if (fw && fw.scale !== 1.0) {
+          fw.scale = 1.0;
+        }
       }
-    }
+      rafId = requestAnimationFrame(keepFlyoutLocked);
+    };
+    rafId = requestAnimationFrame(keepFlyoutLocked);
+    // Store for cleanup
+    workspace._resqbox_rafId = rafId;
 
     if (initialXml) {
       try {
@@ -81,6 +80,7 @@
     onCodeGenerated(generateArduinoCode(workspace));
 
     return () => {
+      if (workspace._resqbox_rafId) cancelAnimationFrame(workspace._resqbox_rafId);
       if (workspace) {
         workspace.dispose();
         workspace = null;
