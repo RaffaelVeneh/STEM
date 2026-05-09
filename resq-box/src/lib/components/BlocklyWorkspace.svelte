@@ -51,22 +51,42 @@
       onWorkspaceChanged(workspace);
     });
 
-    // FIX: Toolbox flyout stays at scale 1.0 regardless of canvas zoom
-    // Continuous check — runs on every animation frame
-    let rafId;
-    const keepFlyoutLocked = () => {
-      const flyout = workspace.getFlyout();
-      if (flyout) {
-        const fw = flyout.getWorkspace();
-        if (fw && fw.scale !== 1.0) {
-          fw.scale = 1.0;
+    // ── FIX: flyout .blocklyBlockCanvas must NEVER inherit canvas zoom ──
+    // Blockly writes `transform="translate(x,y) scale(N)"` directly onto
+    // the SVG element `.blocklyFlyout .blocklyBlockCanvas` every time the
+    // main workspace zooms. We use a MutationObserver to intercept that
+    // attribute write and strip the scale() part, keeping translate() intact.
+    let flyoutObserver = null;
+
+    const attachFlyoutObserver = () => {
+      // The flyout SVG may live inside workspaceDiv or be appended to body
+      const root = workspaceDiv.closest('svg') ?? document;
+      const canvas = root.querySelector?.('.blocklyFlyout .blocklyBlockCanvas')
+        ?? document.querySelector('.blocklyFlyout .blocklyBlockCanvas');
+      if (!canvas || canvas._resqbox_observed) return false;
+
+      flyoutObserver = new MutationObserver((mutations) => {
+        for (const m of mutations) {
+          const el = /** @type {Element} */ (m.target);
+          const t = el.getAttribute('transform') ?? '';
+          // Strip scale(N) — leave translate(x y) untouched
+          const fixed = t.replace(/\s*scale\([^)]*\)/g, '');
+          if (fixed !== t) el.setAttribute('transform', fixed);
         }
-      }
-      rafId = requestAnimationFrame(keepFlyoutLocked);
+      });
+      flyoutObserver.observe(canvas, { attributes: true, attributeFilter: ['transform'] });
+      canvas._resqbox_observed = true;
+      return true;
     };
-    rafId = requestAnimationFrame(keepFlyoutLocked);
-    // Store for cleanup
-    workspace._resqbox_rafId = rafId;
+
+    // Poll until the flyout canvas appears in the DOM (lazy init)
+    let pollId;
+    let polls = 0;
+    const pollForFlyout = () => {
+      if (attachFlyoutObserver()) return; // done
+      if (polls++ < 60) pollId = setTimeout(pollForFlyout, 200); // up to 12 s
+    };
+    pollForFlyout();
 
     if (initialXml) {
       try {
@@ -80,7 +100,8 @@
     onCodeGenerated(generateArduinoCode(workspace));
 
     return () => {
-      if (workspace._resqbox_rafId) cancelAnimationFrame(workspace._resqbox_rafId);
+      flyoutObserver?.disconnect();
+      clearTimeout(pollId);
       if (workspace) {
         workspace.dispose();
         workspace = null;

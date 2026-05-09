@@ -288,46 +288,100 @@
 
   <!-- Main Workshop Area -->
   <div class="flex-1 flex gap-4 min-h-0">
-    <!-- Blockly Canvas -->
-    <div class="flex-1 min-w-0">
+    <!-- Blockly Canvas — relative wrapper so sensor float is anchored to it -->
+    <div class="flex-1 min-w-0" style="position: relative;">
       <BlocklyWorkspace
         bind:this={workspaceRef}
         onCodeGenerated={handleCodeGenerated}
       />
+
+      <!-- FLOATING SENSOR BOX — top-right of the canvas -->
+      <div style="
+        position: absolute;
+        top: 0.75rem;
+        right: 0.75rem;
+        width: 220px;
+        border-radius: 1rem;
+        padding: 0.85rem;
+        background: rgba(255,255,255,0.92);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        border: 2px solid color-mix(in srgb, var(--color-ocean-foam) 50%, transparent);
+        box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+        z-index: 10;
+      ">
+        <h3 style="font-family:var(--font-display); font-weight:700; font-size:0.7rem; text-transform:uppercase; letter-spacing:0.04em; color:var(--color-safety-orange); margin:0 0 0.2rem;">
+          🎮 Simulasi Sensor
+        </h3>
+        <p style="font-size:0.58rem; color:var(--color-earth-brown); opacity:0.6; margin:0 0 0.6rem; line-height:1.3;">
+          Atur nilai sebelum klik ▶️ Jalankan
+        </p>
+        <div style="display:flex; flex-direction:column; gap:0.5rem;">
+          <div>
+            <div style="display:flex; justify-content:space-between; font-size:0.63rem; font-weight:600; color:var(--color-earth-brown); margin-bottom:0.15rem;">
+              <span>💧 Sensor Air</span><span style="color:var(--color-ocean-wave);">{simSensorValues.water}%</span>
+            </div>
+            <input type="range" min="0" max="100" value={simSensorValues.water}
+              oninput={(e) => setSensorValue('water', parseInt(e.target.value))}
+              style="width:100%; height:5px; accent-color:var(--color-ocean-wave); cursor:pointer;" />
+            <div style="display:flex; justify-content:space-between; font-size:0.5rem; color:var(--color-earth-brown); opacity:0.4;">
+              <span>Aman</span><span>Siaga</span><span>Bahaya</span>
+            </div>
+          </div>
+          <div>
+            <div style="display:flex; justify-content:space-between; font-size:0.63rem; font-weight:600; color:var(--color-earth-brown); margin-bottom:0.15rem;">
+              <span>📳 Sensor Getar</span><span style="color:var(--color-safety-yellow);">{simSensorValues.vibration}</span>
+            </div>
+            <input type="range" min="0" max="100" value={simSensorValues.vibration}
+              oninput={(e) => setSensorValue('vibration', parseInt(e.target.value))}
+              style="width:100%; height:5px; accent-color:var(--color-safety-yellow); cursor:pointer;" />
+          </div>
+          <button
+            style="width:100%; padding:0.5rem; border-radius:0.6rem; border:2px solid var(--color-safety-red); background:{simSensorValues.button ? 'var(--color-safety-red)' : 'transparent'}; color:{simSensorValues.button ? '#fff' : 'var(--color-safety-red)'}; font-family:var(--font-display); font-weight:700; font-size:0.65rem; cursor:pointer; transition:all 0.15s;"
+            onmousedown={() => setSensorValue('button', true)}
+            onmouseup={() => setSensorValue('button', false)}
+            onmouseleave={() => setSensorValue('button', false)}
+          >
+            🚨 {simSensorValues.button ? 'DITEKAN!' : 'Tahan untuk tekan'}
+          </button>
+        </div>
+      </div>
     </div>
 
-    <!-- RIGHT PANEL: .ino → Sim Log → Sensors -->
+    <!-- RIGHT PANEL: .ino (50%) + Output Log (50%) -->
     <div style="width:300px; flex-shrink:0; display:flex; flex-direction:column; gap:0.65rem; min-height:0;">
-      
-      <!-- 1. CODE PREVIEW (.ino) — BIGGEST PANEL -->
-      <div style="flex:1 1 auto; min-height:200px; overflow-y:auto; border-radius:1rem; padding:0.85rem; background:#1D3557; display:flex; flex-direction:column;">
-        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:0.4rem;">
+
+      <!-- 1. CODE PREVIEW (.ino) — 50% height -->
+      <div style="flex:1; min-height:0; overflow-y:auto; border-radius:1rem; padding:0.85rem; background:#1D3557; display:flex; flex-direction:column;">
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:0.4rem; flex-shrink:0;">
           <h3 style="font-family:var(--font-display); font-weight:700; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.04em; color:var(--color-ocean-foam); margin:0;">
             📝 Kode Arduino (.ino)
           </h3>
           <button onclick={handleExportCode} style="background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.15); color:var(--color-ocean-foam); cursor:pointer; font-size:0.68rem; padding:0.2rem 0.5rem; border-radius:0.35rem; transition:all 0.2s;"
             onmouseenter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.18)'}
             onmouseleave={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.08)'}
-          >📥 Ekspor .ino</button>
+          >📥 .ino</button>
         </div>
         {#if generatedCode && !generatedCode.startsWith('// Seret blok')}
-          <pre style="font-size:0.7rem; color:var(--color-ocean-foam); font-family:'Consolas','Courier New',monospace; white-space:pre-wrap; margin:0; line-height:1.45; opacity:0.9;">{generatedCode}</pre>
+          <pre style="font-size:0.7rem; color:var(--color-ocean-foam); font-family:'Consolas','Courier New',monospace; white-space:pre-wrap; margin:0; line-height:1.45; opacity:0.9; flex:1; overflow-y:auto;">{generatedCode}</pre>
         {:else}
-          <p style="font-size:0.75rem; color:var(--color-ocean-foam); opacity:0.35; margin:0; font-style:italic; line-height:1.5;">
-            🧩 Seret blok dari toolbox (kiri) ke canvas untuk melihat kode Arduino yang dihasilkan di sini.
-          </p>
+          <div style="flex:1; display:flex; align-items:center; justify-content:center; text-align:center; padding:1rem;">
+            <p style="font-size:0.75rem; color:var(--color-ocean-foam); opacity:0.35; margin:0; font-style:italic; line-height:1.5;">
+              🧩 Seret blok dari toolbox ke canvas untuk melihat kode Arduino
+            </p>
+          </div>
         {/if}
       </div>
 
-      <!-- 2. SIMULATION OUTPUT LOG — SMALL BAR -->
-      <div style="flex:0 0 auto; max-height:120px; min-height:60px; display:flex; flex-direction:column; border-radius:1rem; overflow:hidden; background:#1D3557; box-shadow:0 4px 16px rgba(0,0,0,0.1);">
+      <!-- 2. SIMULATION OUTPUT LOG — 50% height -->
+      <div style="flex:1; min-height:0; display:flex; flex-direction:column; border-radius:1rem; overflow:hidden; background:#1D3557; box-shadow:0 4px 16px rgba(0,0,0,0.1);">
         <div style="display:flex; align-items:center; justify-content:space-between; padding:0.7rem 1rem; background:rgba(255,255,255,0.06); border-bottom:1px solid rgba(255,255,255,0.08); flex-shrink:0;">
           <h3 style="font-family:var(--font-display); font-weight:700; font-size:0.7rem; text-transform:uppercase; letter-spacing:0.06em; color:var(--color-ocean-foam); margin:0;">
             📟 Output Simulasi
           </h3>
           <span style="font-size:0.65rem; color:var(--color-ocean-foam); opacity:0.5;">{simLog.length} langkah</span>
         </div>
-        <div style="flex:1; overflow-y:auto; padding:0.5rem;">
+        <div style="flex:1; overflow-y:auto; padding:0.5rem; min-height:0;">
           {#if simLog.length === 0}
             <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:100%; opacity:0.4; text-align:center; padding:1rem;">
               <div style="font-size:2rem; margin-bottom:0.5rem;">▶️</div>
@@ -342,45 +396,6 @@
               </div>
             {/each}
           {/if}
-        </div>
-      </div>
-
-      <!-- 3. SENSOR SIMULASI — bottom, explanation included -->
-      <div style="flex-shrink:0; border-radius:1rem; padding:0.85rem; background:#fff; border:2px solid color-mix(in srgb, var(--color-ocean-foam) 40%, transparent); box-shadow:0 2px 8px rgba(0,0,0,0.04);">
-        <h3 style="font-family:var(--font-display); font-weight:700; font-size:0.7rem; text-transform:uppercase; letter-spacing:0.04em; color:var(--color-safety-orange); margin:0 0 0.25rem;">
-          🎮 Simulasi Sensor
-        </h3>
-        <p style="font-size:0.6rem; color:var(--color-earth-brown); opacity:0.6; margin:0 0 0.55rem; line-height:1.3;">
-          Atur nilai sensor di sini SEBELUM klik ▶️ Jalankan. Sensor di blok akan membaca nilai ini.
-        </p>
-        <div style="display:flex; flex-direction:column; gap:0.5rem;">
-          <div>
-            <div style="display:flex; justify-content:space-between; font-size:0.65rem; font-weight:600; color:var(--color-earth-brown); margin-bottom:0.15rem;">
-              <span>💧 Sensor Air</span><span style="color:var(--color-ocean-wave);">{simSensorValues.water}%</span>
-            </div>
-            <input type="range" min="0" max="100" value={simSensorValues.water}
-              oninput={(e) => setSensorValue('water', parseInt(e.target.value))}
-              style="width:100%; height:5px; accent-color:var(--color-ocean-wave); cursor:pointer;" />
-            <div style="display:flex; justify-content:space-between; font-size:0.5rem; color:var(--color-earth-brown); opacity:0.4;">
-              <span>Aman</span><span>Siaga</span><span>Bahaya</span>
-            </div>
-          </div>
-          <div>
-            <div style="display:flex; justify-content:space-between; font-size:0.65rem; font-weight:600; color:var(--color-earth-brown); margin-bottom:0.15rem;">
-              <span>📳 Sensor Getar</span><span style="color:var(--color-safety-yellow);">{simSensorValues.vibration}</span>
-            </div>
-            <input type="range" min="0" max="100" value={simSensorValues.vibration}
-              oninput={(e) => setSensorValue('vibration', parseInt(e.target.value))}
-              style="width:100%; height:5px; accent-color:var(--color-safety-yellow); cursor:pointer;" />
-          </div>
-          <button
-            style="width:100%; padding:0.55rem; border-radius:0.6rem; border:2px solid var(--color-safety-red); background:{simSensorValues.button ? 'var(--color-safety-red)' : 'transparent'}; color:{simSensorValues.button ? '#fff' : 'var(--color-safety-red)'}; font-family:var(--font-display); font-weight:700; font-size:0.7rem; cursor:pointer; transition:all 0.15s;"
-            onmousedown={() => setSensorValue('button', true)}
-            onmouseup={() => setSensorValue('button', false)}
-            onmouseleave={() => setSensorValue('button', false)}
-          >
-            🚨 Tombol Darurat — {simSensorValues.button ? 'DITEKAN!' : 'Tahan untuk tekan'}
-          </button>
         </div>
       </div>
 
