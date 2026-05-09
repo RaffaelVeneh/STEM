@@ -7,5 +7,14 @@ export default defineConfig({
   server: {
     port: 5173,
     strictPort: true
+  },
+  optimizeDeps: {
+    include: ['blockly'],
+    exclude: []
+  },
+  build: {
+    commonjsOptions: {
+      include: [/blockly/, /node_modules/]
+    }
   }
 });

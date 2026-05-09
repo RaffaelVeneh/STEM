@@ -132,12 +132,6 @@
     box-shadow: 0 4px 12px rgba(0,0,0,0.1);
   }
 
-  /* Fix: Hide scrollbar on the WORKSPACE (not toolbox) when flyout is closed.
-     Blockly keeps a vertical scrollbar on the workspace SVG. Make it auto instead of scroll. */
-  :global(.blocklyWorkspace > .blocklyBlockCanvas) {
-    overflow: auto;
-  }
-
   :global(.blocklyMainBackground) {
     border-radius: 1rem;
   }
