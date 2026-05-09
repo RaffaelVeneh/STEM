@@ -2,6 +2,8 @@
   import { page } from '$app/stores';
   import { fly } from 'svelte/transition';
 
+  let { children } = $props();
+
   const navItems = [
     { href: '/', label: 'Beranda', icon: '🏠', enLabel: 'Home' },
     { href: '/workshop', label: 'Workshop', icon: '🧩', enLabel: 'Workshop' },
@@ -9,13 +11,16 @@
     { href: '/quests', label: 'Misi', icon: '🎯', enLabel: 'Quests' },
   ];
 
-  let currentLang = 'id'; // 'id' | 'en'
+  let currentLang = $state('id');
+  let activePath = $state('/');
+
+  $effect(() => {
+    activePath = $page.url.pathname;
+  });
 
   function getLabel(item) {
     return currentLang === 'id' ? item.label : item.enLabel;
   }
-
-  $: activePath = $page.url.pathname;
 </script>
 
 <div class="flex h-screen">
@@ -81,7 +86,7 @@
 
   <!-- Main Content -->
   <main class="flex-1 overflow-y-auto bg-gradient-to-br from-siaga-belly to-ocean-foam/20 p-8">
-    {@render children?.()}
+    {@render children()}
   </main>
 </div>
 

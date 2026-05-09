@@ -1,6 +1,56 @@
 @import "tailwindcss";
 
-/* ===== RESQ-BOX Playful Base Styles ===== */
+/* ===== RESQ-BOX Playful Theme (Tailwind 4) ===== */
+@theme {
+  /* Safety palette */
+  --color-safety-orange: #FF6B35;
+  --color-safety-yellow: #FFC107;
+  --color-safety-red: #E63946;
+  --color-safety-green: #2EC4B6;
+
+  /* Earth palette */
+  --color-earth-brown: #6C584C;
+  --color-earth-sand: #F4A261;
+  --color-earth-clay: #E76F51;
+
+  /* Ocean palette */
+  --color-ocean-deep: #1D3557;
+  --color-ocean-wave: #457B9D;
+  --color-ocean-foam: #A8DADC;
+
+  /* Siaga owl palette */
+  --color-siaga-feather: #6C584C;
+  --color-siaga-beak: #FFB703;
+  --color-siaga-eye: #FFD60A;
+  --color-siaga-belly: #FEFAE0;
+
+  /* Fonts */
+  --font-display: 'Fredoka', 'Nunito', sans-serif;
+  --font-body: 'Nunito', sans-serif;
+
+  /* Border radius */
+  --radius-xl: 1rem;
+  --radius-2xl: 1.5rem;
+  --radius-3xl: 2rem;
+
+  /* Animations */
+  --animate-bounce-gentle: bounceGentle 2s ease-in-out infinite;
+  --animate-wiggle: wiggle 1s ease-in-out infinite;
+  --animate-pulse-glow: pulseGlow 1.5s ease-in-out infinite;
+
+  @keyframes bounceGentle {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-5px); }
+  }
+  @keyframes wiggle {
+    0%, 100% { transform: rotate(-3deg); }
+    50% { transform: rotate(3deg); }
+  }
+  @keyframes pulseGlow {
+    0%, 100% { box-shadow: 0 0 5px rgba(255, 183, 3, 0.5); }
+    50% { box-shadow: 0 0 20px rgba(255, 183, 3, 0.8); }
+  }
+}
 
 @layer base {
   * {
