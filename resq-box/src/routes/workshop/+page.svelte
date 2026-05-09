@@ -10,10 +10,6 @@
   let saveStatus = $state('');
   let simMode = $state(true);
 
-  function handleWorkspaceReady(ref) {
-    workspaceRef = ref;
-  }
-
   function handleCodeGenerated(code) {
     generatedCode = code;
   }
@@ -145,7 +141,7 @@
     <!-- Blockly Canvas -->
     <div class="flex-1 min-w-0">
       <BlocklyWorkspace
-        bind:this={handleWorkspaceReady}
+        bind:this={workspaceRef}
         onCodeGenerated={handleCodeGenerated}
       />
     </div>

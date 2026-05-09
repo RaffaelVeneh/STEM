@@ -52,114 +52,106 @@
   }
 }
 
-@layer base {
-  * {
-    @apply transition-colors duration-200;
-  }
-
-  body {
-    @apply overflow-hidden select-none;
-    -webkit-app-region: no-drag;
-  }
-
-  /* Custom scrollbar — playful rounded */
-  ::-webkit-scrollbar {
-    width: 8px;
-  }
-  ::-webkit-scrollbar-track {
-    @apply bg-siaga-belly rounded-full;
-  }
-  ::-webkit-scrollbar-thumb {
-    @apply bg-safety-orange/50 rounded-full;
-  }
-  ::-webkit-scrollbar-thumb:hover {
-    @apply bg-safety-orange;
-  }
+/* ===== Base Styles ===== */
+* {
+  transition: color 0.2s, background-color 0.2s, border-color 0.2s;
 }
 
-@layer components {
-  /* Card component */
-  .card {
-    @apply bg-white rounded-2xl shadow-md p-6 border-2 border-ocean-foam/30;
-  }
+body {
+  overflow: hidden;
+  user-select: none;
+  -webkit-app-region: no-drag;
+}
 
-  .card-hover {
-    @apply hover:shadow-lg hover:border-safety-yellow/50 hover:-translate-y-1 transition-all duration-300;
-  }
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-track { background: var(--color-siaga-belly); border-radius: 9999px; }
+::-webkit-scrollbar-thumb { background: color-mix(in srgb, var(--color-safety-orange) 50%, transparent); border-radius: 9999px; }
+::-webkit-scrollbar-thumb:hover { background: var(--color-safety-orange); }
 
-  /* Button variants */
-  .btn {
-    @apply px-6 py-3 rounded-xl font-display font-semibold text-lg
-           transition-all duration-200 active:scale-95
-           focus:outline-none focus:ring-4 focus:ring-safety-yellow/50;
-  }
+/* ===== Component Classes ===== */
 
-  .btn-primary {
-    @apply btn bg-safety-orange text-white hover:bg-safety-orange/90 shadow-md;
-  }
+.card {
+  background: #fff;
+  border-radius: 1rem;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.07);
+  padding: 1.5rem;
+  border: 2px solid color-mix(in srgb, var(--color-ocean-foam) 30%, transparent);
+}
 
-  .btn-play {
-    @apply btn bg-safety-green text-white hover:bg-safety-green/90 shadow-md;
-  }
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1.25rem;
+  border-radius: 0.75rem;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 0.875rem;
+  transition: all 0.2s;
+  cursor: pointer;
+  border: none;
+  outline: none;
+}
+.btn:active { transform: scale(0.95); }
+.btn:focus-visible { box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-safety-yellow) 50%, transparent); }
 
-  .btn-danger {
-    @apply btn bg-safety-red text-white hover:bg-safety-red/90 shadow-md;
-  }
+.btn-primary { background: var(--color-safety-orange); color: #fff; box-shadow: 0 2px 8px rgba(255,107,53,0.3); }
+.btn-primary:hover { filter: brightness(0.9); }
 
-  .btn-ghost {
-    @apply btn bg-transparent text-earth-brown hover:bg-ocean-foam/30;
-  }
+.btn-play { background: var(--color-safety-green); color: #fff; box-shadow: 0 2px 8px rgba(46,196,182,0.3); }
+.btn-play:hover { filter: brightness(0.9); }
 
-  /* Badge */
-  .badge {
-    @apply inline-flex items-center gap-2 px-3 py-1 rounded-full
-           font-display font-semibold text-sm;
-  }
+.btn-danger { background: var(--color-safety-red); color: #fff; box-shadow: 0 2px 8px rgba(230,57,70,0.3); }
+.btn-danger:hover { filter: brightness(0.9); }
 
-  .badge-gold {
-    @apply badge bg-safety-yellow/20 text-earth-brown border border-safety-yellow;
-  }
+.btn-ghost { background: transparent; color: var(--color-earth-brown); }
+.btn-ghost:hover { background: color-mix(in srgb, var(--color-ocean-foam) 30%, transparent); }
 
-  .badge-xp {
-    @apply badge bg-safety-green/20 text-ocean-deep border border-safety-green/50;
-  }
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 0.75rem;
+}
+.badge-gold { background: color-mix(in srgb, var(--color-safety-yellow) 20%, transparent); color: var(--color-earth-brown); border: 1px solid var(--color-safety-yellow); }
+.badge-xp { background: color-mix(in srgb, var(--color-safety-green) 20%, transparent); color: var(--color-ocean-deep); border: 1px solid color-mix(in srgb, var(--color-safety-green) 50%, transparent); }
 
-  /* Quest card */
-  .quest-card {
-    @apply card card-hover cursor-pointer relative overflow-hidden;
-  }
+.quest-card { cursor: pointer; position: relative; overflow: hidden; transition: all 0.3s; }
+.quest-card:hover { box-shadow: 0 10px 25px rgba(0,0,0,0.1); border-color: color-mix(in srgb, var(--color-safety-yellow) 50%, transparent); transform: translateY(-4px); }
+.quest-card.locked { opacity: 0.5; cursor: not-allowed; }
+.quest-card.locked:hover { box-shadow: 0 4px 6px rgba(0,0,0,0.07); transform: none; }
+.quest-card.completed { border: 2px solid var(--color-safety-green); }
 
-  .quest-card.locked {
-    @apply opacity-50 cursor-not-allowed hover:shadow-md hover:translate-y-0;
-  }
+.xp-bar { height: 0.75rem; border-radius: 9999px; background: var(--color-ocean-foam); overflow: hidden; }
+.xp-bar-fill {
+  height: 100%;
+  border-radius: 9999px;
+  background: linear-gradient(90deg, var(--color-safety-orange), var(--color-safety-yellow));
+  transition: width 0.7s ease-out;
+}
 
-  .quest-card.completed {
-    @apply border-safety-green border-2;
-  }
-
-  /* XP Bar */
-  .xp-bar {
-    @apply h-3 rounded-full bg-ocean-foam overflow-hidden;
-  }
-
-  .xp-bar-fill {
-    @apply h-full rounded-full bg-gradient-to-r from-safety-orange to-safety-yellow
-           transition-all duration-700 ease-out;
-  }
-
-  /* Siaga mascot area */
-  .mascot-bubble {
-    @apply bg-white rounded-2xl rounded-bl-sm shadow-lg p-4
-           border-2 border-safety-yellow/30 relative;
-  }
-
-  .mascot-bubble::after {
-    content: '';
-    @apply absolute -bottom-3 left-6 w-0 h-0
-           border-l-[12px] border-l-transparent
-           border-r-[12px] border-r-transparent
-           border-t-[14px] border-t-white;
-  }
+.mascot-bubble {
+  background: #fff;
+  border-radius: 1rem 1rem 1rem 0.25rem;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  padding: 1rem;
+  border: 2px solid color-mix(in srgb, var(--color-safety-yellow) 30%, transparent);
+  position: relative;
+}
+.mascot-bubble::after {
+  content: '';
+  position: absolute;
+  bottom: -12px;
+  left: 24px;
+  width: 0;
+  height: 0;
+  border-left: 12px solid transparent;
+  border-right: 12px solid transparent;
+  border-top: 14px solid #fff;
 }
 
 /* ===== Animations ===== */
