@@ -1,5 +1,6 @@
 <script>
   import { fly, scale } from 'svelte/transition';
+  import { goto } from '$app/navigation';
   import { QUESTS } from '$lib/quests/definitions.js';
   import { xp, badges, questStatus, xpProgress, xpToNextLevel } from '$lib/stores/gamification.js';
 
@@ -13,20 +14,12 @@
   $effect(() => {
     currentXp = $xp;
     currentBadges = $badges.length;
-    const statuses = $questStatus;
-    missionsDone = Object.values(statuses).filter(s => s === 'completed').length;
-    const statusMap = $questStatus;
+    missionsDone = Object.values($questStatus).filter(s => s === 'completed').length;
     levels = QUESTS.map(q => ({
-      num: q.id,
-      title: q.title,
-      icon: q.icon,
-      desc: q.desc,
-      done: statusMap[q.id] === 'completed',
-      locked: statusMap[q.id] === 'locked',
+      num: q.id, title: q.title, icon: q.icon, desc: q.desc,
+      done: $questStatus[q.id] === 'completed',
+      locked: $questStatus[q.id] === 'locked',
     }));
-  });
-
-  $effect(() => {
     xpBarWidth = $xpProgress;
     xpNext = $xpToNextLevel;
   });
@@ -89,7 +82,12 @@
     </h2>
     <div class="grid grid-cols-5 gap-3">
       {#each levels as level}
-        <div class="quest-card text-center p-4 {level.done ? 'completed' : ''} {level.locked ? 'locked' : ''}" onclick={level.locked ? null : () => window.location.href = `/workshop?quest=${level.num}`} style="cursor: {level.locked ? 'not-allowed' : 'pointer'};">
+        <button
+          class="quest-card text-center p-4 border-none bg-white {level.done ? 'completed' : ''} {level.locked ? 'locked' : ''}"
+          on:click={level.locked ? undefined : () => goto(`/workshop?quest=${level.num}`)}
+          disabled={level.locked}
+          style="cursor: {level.locked ? 'not-allowed' : 'pointer'}; width: 100%;"
+        >
           <div class="text-3xl mb-2">{level.icon}</div>
           <div class="badge-xp text-xs mb-1">Level {level.num}</div>
           <h3 class="font-display font-semibold text-sm text-ocean-deep">{level.title}</h3>
@@ -101,7 +99,7 @@
           {:else}
             <div class="mt-2 text-safety-orange text-lg">▶️</div>
           {/if}
-        </div>
+        </button>
       {/each}
     </div>
   </div>
