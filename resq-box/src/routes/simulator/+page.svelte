@@ -1,19 +1,93 @@
 <script>
-  import { onMount } from 'svelte';
+  import { fly } from 'svelte/transition';
+  import SimulatorCanvas from '$lib/components/SimulatorCanvas.svelte';
+  import { interpretWorkspace } from '$lib/blockly/interpreter.js';
+  import { loadProject } from '$lib/stores/db.js';
 
-  let simRunning = false;
-  let simSpeed = 1;
+  let board = $state(null);
+  let isRunning = $state(false);
+  let waterLevel = $state(45);
+  let vibrationLevel = $state(25);
+  let simStatus = $state('Idle');
 
-  onMount(() => {
-    // Phase 3: Canvas simulator will initialize here
-  });
+  // Live statuses
+  let ledStatus = $state({ red: 'OFF', yellow: 'OFF', green: 'OFF' });
+  let buzzerStatus = $state('OFF');
+  let servoAngle = $state(90);
+  let lcdText = $state('');
 
-  function toggleSimulation() {
-    simRunning = !simRunning;
+  function handleBoardReady(b) {
+    board = b;
+    // Start polling component statuses
+    pollStatus();
   }
 
-  function resetSimulation() {
-    simRunning = false;
+  function pollStatus() {
+    if (!board) return;
+    const b = board;
+    ledStatus = {
+      red: b.components.ledRed.status,
+      yellow: b.components.ledYellow.status,
+      green: b.components.ledGreen.status,
+    };
+    buzzerStatus = b.components.buzzer.status;
+    servoAngle = parseInt(b.components.servo.status);
+    lcdText = b.components.lcd.status;
+    waterLevel = b.components.waterSensor.read();
+    vibrationLevel = b.components.vibrationSensor.read();
+    setTimeout(pollStatus, 200);
+  }
+
+  async function handleRunWorkshop() {
+    if (!board || isRunning) return;
+    isRunning = true;
+    simStatus = 'Running...';
+    try {
+      const project = await loadProject('workspace-main');
+      if (!project?.xml) {
+        simStatus = 'No saved workspace! Go to Workshop first.';
+        isRunning = false;
+        return;
+      }
+      // Parse XML and create temp workspace
+      const Blockly = await import('blockly');
+      const ws = new Blockly.Workspace();
+      const xml = Blockly.utils.xml.textToDom(project.xml);
+      Blockly.Xml.domToWorkspace(xml, ws);
+      const simCtx = board.getSimContext();
+      await interpretWorkspace(ws, simCtx);
+      simStatus = 'Simulation complete ✅';
+    } catch (e) {
+      console.error('Sim error:', e);
+      simStatus = 'Error ❌';
+    } finally {
+      isRunning = false;
+    }
+  }
+
+  function handleReset() {
+    if (board) board.reset();
+    simStatus = 'Reset';
+  }
+
+  function handleWaterChange(e) {
+    const val = parseInt(e.target.value);
+    waterLevel = val;
+    if (board) board.setWaterLevel(val);
+  }
+
+  function handleVibrationChange(e) {
+    const val = parseInt(e.target.value);
+    vibrationLevel = val;
+    if (board) board.setVibrationIntensity(val);
+  }
+
+  function handlePressButton() {
+    if (board) board.pressButton();
+  }
+
+  function handleReleaseButton() {
+    if (board) board.releaseButton();
   }
 </script>
 
@@ -21,23 +95,18 @@
   <title>RESQ-BOX — Simulator</title>
 </svelte:head>
 
-<div class="h-full flex flex-col space-y-4">
+<div class="h-full flex flex-col space-y-4" in:fly={{ y: 20, duration: 300 }}>
   <!-- Header -->
-  <div class="flex items-center justify-between">
-    <h2 class="font-display font-bold text-2xl text-ocean-deep">🔌 Simulator Arduino</h2>
+  <div class="flex items-center justify-between shrink-0">
     <div class="flex items-center gap-3">
-      <!-- Speed control -->
-      <div class="flex items-center gap-2 text-sm text-earth-brown/70">
-        <span>🐢</span>
-        <input type="range" min="0.5" max="3" step="0.5" bind:value={simSpeed}
-               class="w-20 accent-safety-orange" />
-        <span>🐇</span>
-      </div>
-      <!-- Controls -->
-      <button class="btn-play" onclick={toggleSimulation}>
-        {simRunning ? '⏸️ Jeda' : '▶️ Jalankan'}
+      <h2 class="font-display font-bold text-2xl text-ocean-deep">🔌 Simulator Arduino</h2>
+      <span class="badge badge-xp text-xs">{simStatus}</span>
+    </div>
+    <div class="flex gap-2">
+      <button class="btn-play text-sm" onclick={handleRunWorkshop} disabled={isRunning}>
+        {isRunning ? '⏳ Running...' : '▶️ Run Workshop Code'}
       </button>
-      <button class="btn-ghost text-sm" onclick={resetSimulation}>
+      <button class="btn-ghost text-sm" onclick={handleReset}>
         🔄 Reset
       </button>
     </div>
@@ -46,129 +115,82 @@
   <!-- Simulator Area -->
   <div class="flex-1 flex gap-4 min-h-0">
     <!-- Arduino Board Canvas -->
-    <div class="flex-1 bg-white rounded-2xl border-2 border-ocean-foam/20 flex items-center justify-center relative overflow-hidden">
-      <!-- Placeholder Arduino Board -->
-      <div class="text-center">
-        <div class="w-[500px] h-[300px] bg-[#00878F] rounded-3xl mx-auto relative shadow-xl
-                    border-4 border-[#006B70] flex items-center justify-center">
-          <!-- Board details -->
-          <div class="absolute top-4 left-4 right-4 flex justify-between text-white/60 text-xs font-mono">
-            <span>DIGITAL (PWM~)</span>
-            <span>ARDUINO UNO</span>
-          </div>
-
-          <!-- Pin headers (left) -->
-          <div class="absolute left-4 top-12 bottom-12 flex flex-col gap-1">
-            {#each Array(14) as _, i}
-              <div class="w-6 h-2 rounded-full {i < 6 ? 'bg-safety-yellow' : 'bg-white/30'}"></div>
-            {/each}
-          </div>
-
-          <!-- Breadboard area -->
-          <div class="w-[280px] h-[180px] bg-[#F5DEB3] rounded-lg border-2 border-[#D4A574]
-                      flex items-center justify-center gap-4 flex-wrap p-4">
-            <!-- Simulated components (placeholder) -->
-            <div class="w-8 h-8 rounded-full bg-safety-red/30 border-2 border-safety-red flex items-center justify-center text-xs"
-                 title="LED Merah">
-              💡
-            </div>
-            <div class="w-8 h-8 rounded-full bg-safety-yellow/30 border-2 border-safety-yellow flex items-center justify-center text-xs"
-                 title="LED Kuning">
-              💡
-            </div>
-            <div class="w-10 h-10 rounded-lg bg-ocean-wave/20 border-2 border-ocean-wave flex items-center justify-center text-xs"
-                 title="Buzzer">
-              🔊
-            </div>
-            <div class="w-12 h-8 rounded bg-safety-orange/20 border-2 border-safety-orange flex items-center justify-center text-xs"
-                 title="Sensor Air">
-              💧
-            </div>
-            <div class="w-10 h-10 rounded-full bg-earth-sand/20 border-2 border-earth-sand flex items-center justify-center text-xs"
-                 title="Servo">
-              ⚙️
-            </div>
-          </div>
-
-          <!-- Pin headers (right) -->
-          <div class="absolute right-4 top-12 bottom-12 flex flex-col gap-1">
-            {#each Array(6) as _, i}
-              <div class="w-6 h-2 rounded-full bg-ocean-foam/50"></div>
-            {/each}
-          </div>
-
-          <div class="absolute bottom-4 left-4 right-4 text-center text-white/40 text-xs font-mono">
-            RESQ-BOX Virtual Arduino v1.0 — Simulasi
-          </div>
-        </div>
-
-        <p class="mt-4 text-earth-brown/60 text-sm">
-          Simulator penuh dengan animasi akan hadir di Phase 3 ✨
-        </p>
-      </div>
-
-      <!-- Status indicator -->
-      <div class="absolute top-4 right-4 flex items-center gap-2">
-        <div class="w-3 h-3 rounded-full {simRunning ? 'bg-safety-green animate-pulse' : 'bg-earth-brown/30'}"></div>
-        <span class="text-xs text-earth-brown/60">{simRunning ? 'Running' : 'Idle'}</span>
-      </div>
+    <div class="flex-1 min-w-0 rounded-2xl overflow-hidden border-2 border-ocean-foam/20 bg-white relative">
+      <SimulatorCanvas onBoardReady={handleBoardReady} />
     </div>
 
-    <!-- Sensor Monitor (right panel) -->
-    <div class="w-56 shrink-0 space-y-3">
+    <!-- Control Panels (right) -->
+    <div class="w-60 shrink-0 space-y-3 overflow-y-auto">
+      <!-- Sensor Controls -->
       <div class="card p-4">
-        <h3 class="font-display font-semibold text-sm text-earth-brown/60 mb-3">📊 Monitor Sensor</h3>
+        <h3 class="font-display font-semibold text-sm text-safety-orange mb-3">🎮 Kontrol Sensor</h3>
         <div class="space-y-3">
           <div>
             <div class="flex justify-between text-xs text-earth-brown/70 mb-1">
-              <span>💧 Sensor Air</span>
-              <span>0%</span>
+              <span>💧 Air</span>
+              <span>{waterLevel}%</span>
             </div>
-            <div class="h-2 rounded-full bg-ocean-foam overflow-hidden">
-              <div class="h-full rounded-full bg-ocean-wave" style="width:0%"></div>
-            </div>
+            <input type="range" min="0" max="100" value={waterLevel}
+                   oninput={handleWaterChange}
+                   class="w-full accent-ocean-wave h-2 rounded-full" />
           </div>
           <div>
             <div class="flex justify-between text-xs text-earth-brown/70 mb-1">
-              <span>📳 Sensor Getar</span>
-              <span>0</span>
+              <span>📳 Getaran</span>
+              <span>{vibrationLevel}</span>
             </div>
-            <div class="h-2 rounded-full bg-ocean-foam overflow-hidden">
-              <div class="h-full rounded-full bg-safety-yellow" style="width:0%"></div>
-            </div>
+            <input type="range" min="0" max="100" value={vibrationLevel}
+                   oninput={handleVibrationChange}
+                   class="w-full accent-safety-yellow h-2 rounded-full" />
           </div>
-          <div>
-            <div class="flex justify-between text-xs text-earth-brown/70 mb-1">
-              <span>🚨 Tombol Darurat</span>
-              <span>OFF</span>
-            </div>
-            <div class="h-2 rounded-full bg-ocean-foam overflow-hidden">
-              <div class="h-full rounded-full bg-safety-red" style="width:0%"></div>
-            </div>
+          <div class="flex gap-2">
+            <button class="btn-danger text-xs flex-1" onmousedown={handlePressButton} onmouseup={handleReleaseButton}>
+              🚨 Tekan Tombol
+            </button>
           </div>
         </div>
       </div>
 
+      <!-- Output Status -->
       <div class="card p-4">
-        <h3 class="font-display font-semibold text-sm text-earth-brown/60 mb-3">🔧 Output Status</h3>
-        <div class="space-y-2 text-sm">
-          <div class="flex justify-between">
-            <span>💡 LED</span>
-            <span class="text-earth-brown/40">OFF</span>
+        <h3 class="font-display font-semibold text-sm text-safety-green mb-3">🔧 Status Output</h3>
+        <div class="space-y-2 text-xs">
+          <div class="flex justify-between items-center">
+            <span>🔴 LED Merah</span>
+            <span class="font-mono {ledStatus.red === 'ON' ? 'text-safety-red font-bold' : 'text-earth-brown/40'}">{ledStatus.red}</span>
           </div>
-          <div class="flex justify-between">
+          <div class="flex justify-between items-center">
+            <span>🟡 LED Kuning</span>
+            <span class="font-mono {ledStatus.yellow === 'ON' ? 'text-safety-yellow font-bold' : 'text-earth-brown/40'}">{ledStatus.yellow}</span>
+          </div>
+          <div class="flex justify-between items-center">
+            <span>🟢 LED Hijau</span>
+            <span class="font-mono {ledStatus.green === 'ON' ? 'text-safety-green font-bold' : 'text-earth-brown/40'}">{ledStatus.green}</span>
+          </div>
+          <div class="flex justify-between items-center">
             <span>🔊 Buzzer</span>
-            <span class="text-earth-brown/40">OFF</span>
+            <span class="font-mono {buzzerStatus.startsWith('ON') ? 'text-safety-orange font-bold' : 'text-earth-brown/40'}">{buzzerStatus}</span>
           </div>
-          <div class="flex justify-between">
+          <div class="flex justify-between items-center">
             <span>⚙️ Servo</span>
-            <span class="text-earth-brown/40">0°</span>
+            <span class="font-mono text-ocean-wave">{servoAngle}°</span>
           </div>
-          <div class="flex justify-between">
+          <div class="flex justify-between items-center">
             <span>📟 LCD</span>
-            <span class="text-earth-brown/40">-</span>
+            <span class="font-mono text-xs text-earth-brown truncate max-w-[100px]">{lcdText}</span>
           </div>
         </div>
+      </div>
+
+      <!-- Tips -->
+      <div class="card p-4">
+        <h4 class="font-display font-semibold text-xs text-earth-brown/60 mb-2">💡 Cara Pakai</h4>
+        <ol class="text-xs text-earth-brown/70 space-y-1 list-decimal pl-3">
+          <li>Buka <strong>Workshop</strong>, susun blok, lalu <strong>Simpan</strong></li>
+          <li>Kembali ke Simulator</li>
+          <li>Klik <strong>Run Workshop Code</strong></li>
+          <li>Atau gerakkan slider untuk uji manual!</li>
+        </ol>
       </div>
     </div>
   </div>
