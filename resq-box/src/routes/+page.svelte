@@ -1,13 +1,35 @@
 <script>
   import { fly, scale } from 'svelte/transition';
+  import { QUESTS } from '$lib/quests/definitions.js';
+  import { xp, badges, questStatus, xpProgress, xpToNextLevel } from '$lib/stores/gamification.js';
 
-  const levels = [
-    { num: 1, title: 'Gempa!', icon: '🏚️', desc: 'Nyalakan alarm gempa', done: false },
-    { num: 2, title: 'Jalur Evakuasi', icon: '💡', desc: 'Buat lampu evakuasi otomatis', done: false },
-    { num: 3, title: 'Banjir Terdeteksi', icon: '🌊', desc: 'Program sensor banjir', done: false },
-    { num: 4, title: 'Sistem Peringatan Dini', icon: '📢', desc: 'Multi-sensor warning system', done: false },
-    { num: 5, title: 'Desa Tangguh', icon: '🏘️', desc: 'Bangun smart village anti-bencana', done: false },
-  ];
+  let currentXp = $state(0);
+  let currentBadges = $state(0);
+  let missionsDone = $state(0);
+  let xpBarWidth = $state(0);
+  let xpNext = $state(100);
+  let levels = $state([]);
+
+  $effect(() => {
+    currentXp = $xp;
+    currentBadges = $badges.length;
+    const statuses = $questStatus;
+    missionsDone = Object.values(statuses).filter(s => s === 'completed').length;
+    const statusMap = $questStatus;
+    levels = QUESTS.map(q => ({
+      num: q.id,
+      title: q.title,
+      icon: q.icon,
+      desc: q.desc,
+      done: statusMap[q.id] === 'completed',
+      locked: statusMap[q.id] === 'locked',
+    }));
+  });
+
+  $effect(() => {
+    xpBarWidth = $xpProgress;
+    xpNext = $xpToNextLevel;
+  });
 </script>
 
 <svelte:head>
@@ -34,17 +56,17 @@
   <div class="grid grid-cols-3 gap-4 max-w-2xl mx-auto">
     <div class="card text-center">
       <div class="text-3xl mb-1">⭐</div>
-      <div class="font-display font-bold text-2xl text-safety-orange">0</div>
+      <div class="font-display font-bold text-2xl" style="color: var(--color-safety-orange);">{currentXp}</div>
       <div class="text-sm text-earth-brown/60">XP Points</div>
     </div>
     <div class="card text-center">
       <div class="text-3xl mb-1">🏆</div>
-      <div class="font-display font-bold text-2xl text-safety-yellow">0</div>
+      <div class="font-display font-bold text-2xl" style="color: var(--color-safety-yellow);">{currentBadges}</div>
       <div class="text-sm text-earth-brown/60">Badges</div>
     </div>
     <div class="card text-center">
       <div class="text-3xl mb-1">🎯</div>
-      <div class="font-display font-bold text-2xl text-safety-green">0/5</div>
+      <div class="font-display font-bold text-2xl" style="color: var(--color-safety-green);">{missionsDone}/5</div>
       <div class="text-sm text-earth-brown/60">Misi Selesai</div>
     </div>
   </div>
@@ -53,10 +75,10 @@
   <div class="max-w-2xl mx-auto">
     <div class="flex justify-between text-sm text-earth-brown/70 mb-1">
       <span>Level 1 — Pemula Tangguh</span>
-      <span>0 / 100 XP</span>
+      <span>{currentXp} / {currentXp + xpNext} XP</span>
     </div>
     <div class="xp-bar">
-      <div class="xp-bar-fill" style="width: 0%"></div>
+      <div class="xp-bar-fill" style="width: {xpBarWidth}%"></div>
     </div>
   </div>
 
@@ -66,16 +88,18 @@
       📋 Perjalanan Misi
     </h2>
     <div class="grid grid-cols-5 gap-3">
-      {#each levels as level, i}
-        <div class="quest-card text-center p-4 {level.done ? 'completed' : ''}">
+      {#each levels as level}
+        <div class="quest-card text-center p-4 {level.done ? 'completed' : ''} {level.locked ? 'locked' : ''}" onclick={level.locked ? null : () => window.location.href = `/workshop?quest=${level.num}`} style="cursor: {level.locked ? 'not-allowed' : 'pointer'};">
           <div class="text-3xl mb-2">{level.icon}</div>
           <div class="badge-xp text-xs mb-1">Level {level.num}</div>
           <h3 class="font-display font-semibold text-sm text-ocean-deep">{level.title}</h3>
           <p class="text-xs text-earth-brown/60 mt-1">{level.desc}</p>
           {#if level.done}
             <div class="mt-2 text-safety-green text-lg">✅</div>
-          {:else}
+          {:else if level.locked}
             <div class="mt-2 text-earth-brown/30 text-lg">🔒</div>
+          {:else}
+            <div class="mt-2 text-safety-orange text-lg">▶️</div>
           {/if}
         </div>
       {/each}

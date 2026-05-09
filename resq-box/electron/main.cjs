@@ -1,16 +1,20 @@
 const { app, BrowserWindow, ipcMain } = require('electron');
 const path = require('path');
+const fs = require('fs');
 
 let mainWindow;
 
 function createWindow() {
+  const iconPath = path.join(__dirname, '../static/icon.png');
+  const iconExists = fs.existsSync(iconPath);
+
   mainWindow = new BrowserWindow({
     width: 1280,
     height: 800,
     minWidth: 1024,
     minHeight: 700,
     title: 'RESQ-BOX — STEM Disaster Education Kit',
-    icon: path.join(__dirname, '../static/icon.png'),
+    ...(iconExists ? { icon: iconPath } : {}),
     webPreferences: {
       preload: path.join(__dirname, 'preload.cjs'),
       contextIsolation: true,

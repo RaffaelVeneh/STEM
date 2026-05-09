@@ -1,76 +1,22 @@
 <script>
   import { fly } from 'svelte/transition';
+  import { goto } from '$app/navigation';
+  import { QUESTS } from '$lib/quests/definitions.js';
+  import { questStatus } from '$lib/stores/gamification.js';
 
-  const quests = [
-    {
-      id: 1,
-      title: 'Gempa!',
-      titleEn: 'Earthquake!',
-      icon: '🏚️',
-      desc: 'Nyalakan alarm gempa menggunakan sensor getar, LED, dan buzzer.',
-      descEn: 'Activate earthquake alarm using vibration sensor, LED, and buzzer.',
-      xp: 100,
-      difficulty: '⭐',
-      status: 'available', // 'locked' | 'available' | 'completed'
-      blocks: ['📳 Sensor Getar', '💡 LED', '🔊 Buzzer'],
-      hint: 'Hubungkan sensor getar ke LED dan buzzer. Jika getaran terdeteksi, nyalakan alarm!'
-    },
-    {
-      id: 2,
-      title: 'Jalur Evakuasi',
-      titleEn: 'Evacuation Route',
-      icon: '💡',
-      desc: 'Buat lampu evakuasi otomatis yang menyala saat tombol darurat ditekan.',
-      descEn: 'Create automatic evacuation light triggered by emergency button.',
-      xp: 150,
-      difficulty: '⭐⭐',
-      status: 'locked',
-      blocks: ['🚨 Tombol Darurat', '💡 LED', '⏱️ Tunggu'],
-      hint: 'Gunakan tombol darurat sebagai pemicu. LED harus menyala dengan pola berkedip.'
-    },
-    {
-      id: 3,
-      title: 'Banjir Terdeteksi',
-      titleEn: 'Flood Detected',
-      icon: '🌊',
-      desc: 'Program sensor air untuk mendeteksi banjir dan membunyikan peringatan.',
-      descEn: 'Program water sensor to detect flood and trigger warning buzzer.',
-      xp: 200,
-      difficulty: '⭐⭐',
-      status: 'locked',
-      blocks: ['💧 Sensor Air', '🔊 Buzzer', '🔄 Jika-Maka'],
-      hint: 'Jika level air melebihi batas, buzzer harus berbunyi dengan pola SOS.'
-    },
-    {
-      id: 4,
-      title: 'Sistem Peringatan Dini',
-      titleEn: 'Early Warning System',
-      icon: '📢',
-      desc: 'Gabungkan beberapa sensor untuk membuat sistem peringatan dini multi-bahaya.',
-      descEn: 'Combine multiple sensors to create a multi-hazard early warning system.',
-      xp: 300,
-      difficulty: '⭐⭐⭐',
-      status: 'locked',
-      blocks: ['💧 Sensor Air', '📳 Sensor Getar', '📟 LCD', '🔊 Buzzer', '🔄 Jika-Maka'],
-      hint: 'Setiap jenis bahaya harus menghasilkan pola peringatan yang berbeda di LCD dan buzzer.'
-    },
-    {
-      id: 5,
-      title: 'Desa Tangguh',
-      titleEn: 'Resilient Village',
-      icon: '🏘️',
-      desc: 'Bangun sistem smart village lengkap: deteksi, alarm, evakuasi, dan komunikasi.',
-      descEn: 'Build complete smart village system: detection, alarm, evacuation, communication.',
-      xp: 500,
-      difficulty: '⭐⭐⭐⭐⭐',
-      status: 'locked',
-      blocks: ['Semua blok tersedia'],
-      hint: 'Integrasikan semua sensor dan output. Desa harus merespon gempa, banjir, dan longsor.'
-    },
-  ];
+  let quests = $state(QUESTS.map(q => ({ ...q, status: 'locked' })));
+  let selectedQuest = $state(null);
+  let currentLang = $state('id');
 
-  let selectedQuest = null;
-  let currentLang = 'id';
+  // Sync quest statuses from store
+  $effect(() => {
+    const statuses = $questStatus;
+    quests = QUESTS.map(q => ({ ...q, status: statuses[q.id] || 'locked' }));
+    // Update selected quest if it changed
+    if (selectedQuest) {
+      selectedQuest = quests.find(q => q.id === selectedQuest.id) || null;
+    }
+  });
 
   function selectQuest(quest) {
     if (quest.status !== 'locked') {
@@ -79,8 +25,8 @@
   }
 
   function startQuest(quest) {
-    // Will navigate to workshop with quest context (Phase 4)
-    console.log('Starting quest:', quest.id);
+    // Navigate to workshop with quest context
+    goto(`/workshop?quest=${quest.id}`);
   }
 </script>
 
