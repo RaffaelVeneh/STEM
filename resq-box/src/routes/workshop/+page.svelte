@@ -9,7 +9,7 @@
   import { getQuest } from '$lib/quests/definitions.js';
   import { completeQuest, activeMission, setActiveMission } from '$lib/stores/gamification.js';
   import { workspaceTabs, activeWorkspaceTab, allTabs } from '$lib/stores/workspaceTabs.js';
-  import { saveDraft, restoreDrafts, deleteDraft, loadDraft } from '$lib/stores/draft.js';
+  import { saveDraft, restoreDrafts, deleteDraft, loadDraft, saveAllDrafts } from '$lib/stores/draft.js';
   import { page } from '$app/stores';
 
   let workspaceRefs = $state({});      // tabId → BlocklyWorkspace instance
@@ -38,35 +38,53 @@
     }
   });
 
-  // Restore drafts & open default tabs on mount
-  onMount(async () => {
-    await restoreDrafts();
-    const tabs = workspaceTabs.getAllTabs();
-    if (tabs.length === 0) {
-      workspaceTabs.openTab('Workshop', '🧩', null);
-    }
-    const tabParam = $page.url.searchParams.get('tab');
-    if (tabParam) {
-      const questIdMatch = tabParam.match(/^quest-(\d+)$/);
-      if (questIdMatch) {
-        const qId = parseInt(questIdMatch[1]);
-        const quest = getQuest(qId);
-        if (quest) {
-          setActiveMission(quest);
-          workspaceTabs.openTab(`Level ${qId}`, quest.icon || '🎯', qId);
+  // ─── INIT: Open first tab + handle URL params on EVERY mount ───
+  let hasInitialized = $state(false);
+
+  $effect(() => {
+    // Reset store state fresh on every mount
+    if (!hasInitialized) {
+      hasInitialized = true;
+      
+      // Always ensure exactly 1 free workspace tab on first visit
+      const tabs = workspaceTabs.getAllTabs();
+      
+      // Check URL for &tab= → open that specific tab
+      const tabParam = $page.url.searchParams.get('tab');
+      if (tabParam) {
+        const questIdMatch = tabParam.match(/^quest-(\d+)$/);
+        if (questIdMatch) {
+          const qId = parseInt(questIdMatch[1]);
+          const quest = getQuest(qId);
+          if (quest) {
+            setActiveMission(quest);
+            // Open mission tab first
+            workspaceTabs.openTab(`Level ${qId}`, quest.icon || '🎯', qId);
+            // Also ensure a free workshop tab exists
+            if (!tabs.some(t => t.questId === null)) {
+              workspaceTabs.openTab('Workshop', '🧩', null);
+            }
+            return;
+          }
         }
       }
+
+      // No URL param → restore drafts or create default tab
+      restoreDrafts().then(() => {
+        const currentTabs = workspaceTabs.getAllTabs();
+        if (currentTabs.length === 0) {
+          workspaceTabs.openTab('Workshop', '🧩', null);
+        }
+      });
     }
   });
 
-  // Auto-save drafts when leaving
+  // Auto-save ALL tabs as drafts when leaving page
   onDestroy(() => {
     const tabs = workspaceTabs.getAllTabs();
-    for (const tab of tabs) {
-      if (tab.xml && tab.dirty) {
-        saveDraft(tab.id, tab.xml, tab.code, tab.questId);
-      }
-    }
+    saveAllDrafts(tabs);
+    // Reset store so next mount starts fresh
+    workspaceTabs.reset();
   });
 
   // Track active tab ID
