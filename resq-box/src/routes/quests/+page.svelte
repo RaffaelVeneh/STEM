@@ -6,7 +6,90 @@
 
   let quests = $state(QUESTS.map(q => ({ ...q, status: 'locked' })));
   let selectedQuest = $state(null);
+  let selectedProject = $state(null);
   let currentLang = $state('id');
+  let activeTab = $state('quests');
+
+  // Group quests by disaster type with visual theming
+  const disasterGroups = [
+    {
+      id: 'gempa',
+      title: 'Gempa Bumi',
+      titleEn: 'Earthquake',
+      icon: '🏚️',
+      color: 'var(--color-safety-red)',
+      quests: QUESTS.filter(q => [1, 2].includes(q.id)),
+    },
+    {
+      id: 'banjir',
+      title: 'Banjir',
+      titleEn: 'Flood',
+      icon: '🌊',
+      color: 'var(--color-ocean-wave)',
+      quests: QUESTS.filter(q => [3].includes(q.id)),
+    },
+    {
+      id: 'multi',
+      title: 'Multi-Bencana',
+      titleEn: 'Multi-Hazard',
+      icon: '📢',
+      color: 'var(--color-safety-orange)',
+      quests: QUESTS.filter(q => [4].includes(q.id)),
+    },
+    {
+      id: 'tangguh',
+      title: 'Desa Tangguh',
+      titleEn: 'Resilient Village',
+      icon: '🏘️',
+      color: 'var(--color-safety-green)',
+      quests: QUESTS.filter(q => [5].includes(q.id)),
+    },
+  ];
+
+  const FINAL_PROJECTS = [
+    {
+      id: 'project-1',
+      title: 'Sistem Peringatan Dini Terpadu',
+      titleEn: 'Integrated Early Warning System',
+      icon: '🔔',
+      desc: 'Gabungkan semua sensor dan aktuator untuk membuat sistem peringatan dini lengkap dengan LCD, buzzer, dan LED.',
+      hardwareSteps: [
+        'Pasang sensor getar pada pin D2',
+        'Pasang sensor air pada pin A0',
+        'Pasang LED merah pada pin D13',
+        'Pasang buzzer pada pin D9',
+        'Pasang LCD I2C pada pin SDA/SCL',
+        'Pasang tombol darurat pada pin D3',
+      ],
+    },
+    {
+      id: 'project-2',
+      title: 'Smart Evacuation System',
+      titleEn: 'Smart Evacuation System',
+      icon: '🚨',
+      desc: 'Bangun jalur evakuasi pintar dengan LED indikator arah, servo sebagai palang, dan tombol darurat.',
+      hardwareSteps: [
+        'Pasang 3 LED (merah, kuning, hijau) pada pin D11, D12, D13',
+        'Pasang servo pada pin D5 sebagai palang evakuasi',
+        'Pasang tombol darurat pada pin D2',
+        'Pasang LCD untuk menampilkan arah evakuasi',
+      ],
+    },
+    {
+      id: 'project-3',
+      title: 'Smart Flood Barrier',
+      titleEn: 'Smart Flood Barrier',
+      icon: '🛡️',
+      desc: 'Deteksi ketinggian air dan aktifkan penghalang banjir otomatis menggunakan servo.',
+      hardwareSteps: [
+        'Pasang sensor air pada pin A0',
+        'Pasang servo sebagai penghalang pada pin D6',
+        'Pasang LED peringatan pada pin D13',
+        'Pasang buzzer alarm pada pin D9',
+        'Pasang LCD untuk menampilkan level air',
+      ],
+    },
+  ];
 
   // Sync quest statuses from store — reads only, no writes to selectedQuest
   $effect(() => {
@@ -26,12 +109,22 @@
   function selectQuest(quest) {
     if (quest.status !== 'locked') {
       selectedQuest = quest;
+      selectedProject = null;
     }
   }
 
   function startQuest(quest) {
     // Navigate to workshop with quest context
     goto(`/workshop?quest=${quest.id}`);
+  }
+
+  function handleGroupKeydown(e, group) {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      // Expand/collapse or focus first quest
+      const firstAvailable = group.quests.find(q => q.status !== 'locked');
+      if (firstAvailable) selectQuest(firstAvailable);
+    }
   }
 </script>
 
