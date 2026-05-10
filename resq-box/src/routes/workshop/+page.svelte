@@ -259,7 +259,7 @@
     </div>
   {/if}
   <!-- Toolbar -->
-  <div style="display:flex; align-items:center; justify-content:space-between; flex-shrink:0; padding:0.75rem 1.25rem; border-radius:1.25rem; background: linear-gradient(135deg, var(--color-ocean-deep), var(--color-ocean-wave));">
+  <div style="display:flex; align-items:center; justify-content:space-between; flex-shrink:0; padding:0.75rem 1.25rem; border-radius:1.5rem; background: linear-gradient(135deg, var(--color-ocean-deep) 0%, var(--color-ocean-wave) 60%, #5BA4CF 100%); border:2px solid rgba(255,255,255,0.12); box-shadow:0 6px 24px rgba(29,53,87,0.25);">
     <div style="display:flex; align-items:center; gap:0.75rem;">
       <h2 style="font-family:var(--font-display); font-weight:800; font-size:1.25rem; color:#fff; margin:0;">
         🧩 Workshop Coding
@@ -274,13 +274,98 @@
       {/if}
     </div>
     <div style="display:flex; gap:0.5rem;">
-      <button class="btn-ghost" style="color:#fff; font-size:0.8rem;" onclick={handleLoad}>📂 Buka</button>
-      <button class="btn-ghost" style="color:#fff; font-size:0.8rem;" onclick={handleSave} disabled={saveStatus === 'saving'}>
+      <button onclick={handleLoad}
+        style="
+          padding:0.55rem 0.9rem;
+          border-radius:2rem;
+          border:2px solid rgba(255,255,255,0.25);
+          background:rgba(255,255,255,0.1);
+          color:#fff;
+          font-family:var(--font-display);
+          font-weight:600;
+          font-size:0.78rem;
+          cursor:pointer;
+          backdrop-filter:blur(6px);
+          -webkit-backdrop-filter:blur(6px);
+          transition:all 0.2s;
+        "
+        onmouseenter={(e) => { e.currentTarget.style.background='rgba(255,255,255,0.22)'; e.currentTarget.style.borderColor='rgba(255,255,255,0.45)'; e.currentTarget.style.transform='translateY(-1px)'; }}
+        onmouseleave={(e) => { e.currentTarget.style.background='rgba(255,255,255,0.1)'; e.currentTarget.style.borderColor='rgba(255,255,255,0.25)'; e.currentTarget.style.transform='translateY(0)'; }}
+      >📂 Buka</button>
+      <button onclick={handleSave} disabled={saveStatus === 'saving'}
+        style="
+          padding:0.55rem 0.9rem;
+          border-radius:2rem;
+          border:2px solid {saveStatus === 'saved' ? 'var(--color-safety-green)' : 'rgba(255,255,255,0.25)'};
+          background:{saveStatus === 'saved' ? 'color-mix(in srgb, var(--color-safety-green) 30%, transparent)' : 'rgba(255,255,255,0.1)'};
+          color:{saveStatus === 'saved' ? 'var(--color-safety-green)' : '#fff'};
+          font-family:var(--font-display);
+          font-weight:600;
+          font-size:0.78rem;
+          cursor:{saveStatus === 'saving' ? 'wait' : 'pointer'};
+          backdrop-filter:blur(6px);
+          -webkit-backdrop-filter:blur(6px);
+          transition:all 0.2s;
+          opacity:{saveStatus === 'saving' ? '0.6' : '1'};
+        "
+      >
         {saveStatus === 'saving' ? '⏳ ...' : saveStatus === 'saved' ? '✅ Tersimpan!' : '💾 Simpan'}
       </button>
-      <button class="btn-ghost" style="color:#fff; font-size:0.8rem;" onclick={handleClear}>🗑️</button>
-      <button class="btn-ghost" style="color:#fff; font-size:0.8rem;" onclick={handleExportCode}>📥 .ino</button>
-      <button class="btn-play" style="font-size:0.85rem; padding:0.6rem 1.25rem;" onclick={handleRun} disabled={isRunning}>
+      <button onclick={handleClear}
+        style="
+          width:2.3rem;height:2.3rem;
+          padding:0;
+          border-radius:50%;
+          border:2px solid rgba(255,255,255,0.25);
+          background:rgba(255,255,255,0.1);
+          color:#fff;
+          font-size:0.9rem;
+          cursor:pointer;
+          backdrop-filter:blur(6px);
+          -webkit-backdrop-filter:blur(6px);
+          transition:all 0.2s;
+          display:flex;align-items:center;justify-content:center;
+        "
+        onmouseenter={(e) => { e.currentTarget.style.background='rgba(230,57,70,0.3)'; e.currentTarget.style.borderColor='var(--color-safety-red)'; }}
+        onmouseleave={(e) => { e.currentTarget.style.background='rgba(255,255,255,0.1)'; e.currentTarget.style.borderColor='rgba(255,255,255,0.25)'; }}
+      >🗑️</button>
+      <button onclick={handleExportCode}
+        style="
+          padding:0.55rem 0.9rem;
+          border-radius:2rem;
+          border:2px solid rgba(255,255,255,0.3);
+          background:rgba(255,183,3,0.18);
+          color:var(--color-safety-yellow);
+          font-family:var(--font-display);
+          font-weight:700;
+          font-size:0.78rem;
+          cursor:pointer;
+          backdrop-filter:blur(6px);
+          -webkit-backdrop-filter:blur(6px);
+          transition:all 0.2s;
+        "
+        onmouseenter={(e) => { e.currentTarget.style.background='rgba(255,183,3,0.3)'; e.currentTarget.style.borderColor='var(--color-safety-yellow)'; e.currentTarget.style.transform='translateY(-1px)'; e.currentTarget.style.boxShadow='0 4px 16px rgba(255,183,3,0.25)'; }}
+        onmouseleave={(e) => { e.currentTarget.style.background='rgba(255,183,3,0.18)'; e.currentTarget.style.borderColor='rgba(255,255,255,0.3)'; e.currentTarget.style.transform='translateY(0)'; e.currentTarget.style.boxShadow='none'; }}
+      >📥 .ino</button>
+      <button onclick={handleRun} disabled={isRunning}
+        style="
+          padding:0.55rem 1.3rem;
+          border-radius:2rem;
+          border:none;
+          background:{isRunning ? 'color-mix(in srgb, var(--color-safety-green) 50%, #999)' : 'linear-gradient(135deg, var(--color-safety-green), var(--color-ocean-wave))'};
+          color:#fff;
+          font-family:var(--font-display);
+          font-weight:800;
+          font-size:0.85rem;
+          cursor:{isRunning ? 'wait' : 'pointer'};
+          box-shadow:0 4px 18px {isRunning ? 'rgba(0,0,0,0.1)' : 'rgba(46,196,182,0.4)'};
+          transition:all 0.2s;
+          opacity:{isRunning ? '0.7' : '1'};
+          letter-spacing:0.02em;
+        "
+        onmouseenter={isRunning ? null : (e) => { e.currentTarget.style.transform='translateY(-1px)'; e.currentTarget.style.boxShadow='0 6px 24px rgba(46,196,182,0.5)'; e.currentTarget.style.filter='brightness(1.08)'; }}
+        onmouseleave={isRunning ? null : (e) => { e.currentTarget.style.transform='translateY(0)'; e.currentTarget.style.boxShadow='0 4px 18px rgba(46,196,182,0.4)'; e.currentTarget.style.filter='brightness(1)'; }}
+      >
         {isRunning ? '⏳ Running...' : '▶️ Jalankan'}
       </button>
     </div>
