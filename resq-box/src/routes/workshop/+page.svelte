@@ -252,6 +252,15 @@
   }
 
   function handleSelectTab(tabId) {
+    // Save current XML before switching
+    if (activeTabId && activeTabId !== tabId) {
+      const ref = getWorkspaceRef(activeTabId);
+      if (ref) {
+        const xml = ref.getWorkspaceXml();
+        workspaceTabs.saveTabXml(activeTabId, xml || '');
+        saveDraft(activeTabId, xml || '', tabCodes[activeTabId] || '', null);
+      }
+    }
     workspaceTabs.setActiveTab(tabId);
   }
 
@@ -500,16 +509,16 @@
 
   <!-- Main Workshop Area -->
   <div class="flex-1 flex gap-4" style="min-height: 0; overflow: hidden;">
-    <!-- Blockly Canvas per active tab -->
+    <!-- Blockly Canvas — ONLY render active tab (prevents Blockly singleton conflict) -->
     <div class="flex-1" style="position: relative; min-width: 0;">
-      {#each $allTabs as tab}
-        <div style="display: {activeTabId === tab.id ? 'block' : 'none'}; width: 100%; height: 100%; position: absolute; top: 0; left: 0; right: 0; bottom: 0;">
+      {#if activeTabId}
+        <div style="width: 100%; height: 100%; position: absolute; top: 0; left: 0; right: 0; bottom: 0;">
           <BlocklyWorkspace
-            bind:this={workspaceRefs[tab.id]}
+            bind:this={workspaceRefs[activeTabId]}
             onCodeGenerated={(code) => handleCodeGenerated(code)}
           />
         </div>
-      {/each}
+      {/if}
 
       <!-- FLOATING SENSOR BOX — top-right of the canvas -->
       <div style="
