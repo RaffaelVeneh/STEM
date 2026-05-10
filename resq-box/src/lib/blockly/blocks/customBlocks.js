@@ -259,7 +259,7 @@ export function defineCustomBlocks() {
       this.jsonInit({
         message0: '🔄 jika %1 %2 %3',
         args0: [
-          { type: 'input_value', name: 'SENSOR', check: 'Number' },
+          { type: 'input_value', name: 'SENSOR' },
           {
             type: 'field_dropdown',
             name: 'OP',
@@ -271,14 +271,14 @@ export function defineCustomBlocks() {
               ['=', 'EQ'],
             ],
           },
-          { type: 'input_value', name: 'THRESHOLD', check: 'Number' },
+          { type: 'input_value', name: 'THRESHOLD' },
         ],
         message1: 'lakukan %1',
         args1: [{ type: 'input_statement', name: 'DO' }],
         previousStatement: null,
         nextStatement: null,
         colour: COLORS.control,
-        tooltip: 'Jika kondisi sensor terpenuhi, lakukan aksi',
+        tooltip: 'Jika kondisi terpenuhi, lakukan aksi',
       });
     },
   };
@@ -286,8 +286,9 @@ export function defineCustomBlocks() {
   Blockly.Blocks['if_emergency'] = {
     init: function () {
       this.jsonInit({
-        message0: '🔄 jika tombol darurat %1',
+        message0: '🔄 jika %1 %2',
         args0: [
+          { type: 'input_value', name: 'CONDITION' },
           {
             type: 'field_dropdown',
             name: 'STATE',
@@ -302,7 +303,7 @@ export function defineCustomBlocks() {
         previousStatement: null,
         nextStatement: null,
         colour: COLORS.control,
-        tooltip: 'Jika tombol darurat dalam kondisi tertentu, lakukan aksi',
+        tooltip: 'Jika kondisi darurat terpenuhi, lakukan aksi',
       });
     },
   };
@@ -355,8 +356,8 @@ export function defineCustomBlocks() {
       this.jsonInit({
         message0: '%1 DAN %2',
         args0: [
-          { type: 'input_value', name: 'A', check: 'Boolean' },
-          { type: 'input_value', name: 'B', check: 'Boolean' },
+          { type: 'input_value', name: 'A' },
+          { type: 'input_value', name: 'B' },
         ],
         output: 'Boolean',
         colour: COLORS.control,
@@ -370,8 +371,8 @@ export function defineCustomBlocks() {
       this.jsonInit({
         message0: '%1 ATAU %2',
         args0: [
-          { type: 'input_value', name: 'A', check: 'Boolean' },
-          { type: 'input_value', name: 'B', check: 'Boolean' },
+          { type: 'input_value', name: 'A' },
+          { type: 'input_value', name: 'B' },
         ],
         output: 'Boolean',
         colour: COLORS.control,
@@ -385,13 +386,13 @@ export function defineCustomBlocks() {
       this.jsonInit({
         message0: 'bandingkan %1 %2 %3',
         args0: [
-          { type: 'input_value', name: 'A', check: 'Number' },
+          { type: 'input_value', name: 'A' },
           {
             type: 'field_dropdown',
             name: 'OP',
             options: [['>', 'GT'], ['<', 'LT'], ['=', 'EQ'], ['≥', 'GTE'], ['≤', 'LTE']],
           },
-          { type: 'input_value', name: 'B', check: 'Number' },
+          { type: 'input_value', name: 'B' },
         ],
         output: 'Boolean',
         colour: COLORS.control,

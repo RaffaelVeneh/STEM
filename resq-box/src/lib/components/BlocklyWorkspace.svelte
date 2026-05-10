@@ -51,42 +51,19 @@
       onWorkspaceChanged(workspace);
     });
 
-    // ── FIX: flyout .blocklyBlockCanvas must NEVER inherit canvas zoom ──
-    // Blockly writes `transform="translate(x,y) scale(N)"` directly onto
-    // the SVG element `.blocklyFlyout .blocklyBlockCanvas` every time the
-    // main workspace zooms. We use a MutationObserver to intercept that
-    // attribute write and strip the scale() part, keeping translate() intact.
-    let flyoutObserver = null;
-
-    const attachFlyoutObserver = () => {
-      // The flyout SVG may live inside workspaceDiv or be appended to body
-      const root = workspaceDiv.closest('svg') ?? document;
-      const canvas = root.querySelector?.('.blocklyFlyout .blocklyBlockCanvas')
-        ?? document.querySelector('.blocklyFlyout .blocklyBlockCanvas');
-      if (!canvas || canvas._resqbox_observed) return false;
-
-      flyoutObserver = new MutationObserver((mutations) => {
-        for (const m of mutations) {
-          const el = /** @type {Element} */ (m.target);
-          const t = el.getAttribute('transform') ?? '';
-          // Strip scale(N) — leave translate(x y) untouched
-          const fixed = t.replace(/\s*scale\([^)]*\)/g, '');
-          if (fixed !== t) el.setAttribute('transform', fixed);
-        }
-      });
-      flyoutObserver.observe(canvas, { attributes: true, attributeFilter: ['transform'] });
-      canvas._resqbox_observed = true;
-      return true;
-    };
-
-    // Poll until the flyout canvas appears in the DOM (lazy init)
-    let pollId;
-    let polls = 0;
-    const pollForFlyout = () => {
-      if (attachFlyoutObserver()) return; // done
-      if (polls++ < 60) pollId = setTimeout(pollForFlyout, 200); // up to 12 s
-    };
-    pollForFlyout();
+    // ── FIX: Flyout must NOT zoom with the main canvas ──────────────────
+    // Root cause (confirmed from Blockly v11 source):
+    //   reflowInternal_() does: this.workspace_.scale = this.getFlyoutScale()
+    //   getFlyoutScale() returns: this.targetWorkspace.scale
+    // So every reflow (triggered on zoom) copies the main canvas scale into
+    // the flyout workspace. The fix: override getFlyoutScale() to always
+    // return 1.0 — it is explicitly designed as a public override point.
+    //
+    // The flyout object exists immediately after inject(), no polling needed.
+    const flyout = workspace.getFlyout(false);
+    if (flyout) {
+      flyout.getFlyoutScale = () => 1.0;
+    }
 
     if (initialXml) {
       try {
