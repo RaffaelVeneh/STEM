@@ -114,31 +114,22 @@
 </div>
 
 <style>
-  @reference "tailwindcss";
-
   :global(.blocklyToolboxDiv) {
     border-right: 2px solid var(--color-ocean-foam, #A8DADC);
   }
-
   :global(.blocklyFlyout) {
     border-right: 2px solid var(--color-ocean-foam, #A8DADC);
     box-shadow: 0 4px 12px rgba(0,0,0,0.1);
   }
-
   :global(.blocklyMainBackground) {
     border-radius: 1rem;
   }
-
   :global(.blocklyScrollbarHandle) {
     border-radius: 9999px;
   }
-
   :global(.blocklyZoom > image) {
     border-radius: 0.5rem;
   }
-
-  /* GHOST SCROLLBAR FIX: .blocklyFlyoutScrollbar is a SIBLING div, not child.
-     It's non-functional. Just hide it always. */
   :global(.blocklyFlyoutScrollbar) {
     display: none !important;
   }
