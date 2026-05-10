@@ -103,7 +103,9 @@
       {:else}
         <!-- Final Projects Tab -->
         {#each FINAL_PROJECTS as project}
-          <div style="border-radius:1.25rem; padding:1.5rem; border:2px solid var(--color-safety-green)30; background:linear-gradient(135deg, var(--color-safety-green)05, var(--color-ocean-deep)03); cursor:pointer;" onclick={() => selectedProject = project}>
+          <button type="button"
+            style="width:100%; border-radius:1.25rem; padding:1.5rem; border:2px solid color-mix(in srgb, var(--color-safety-green) 30%, transparent); background:linear-gradient(135deg, color-mix(in srgb, var(--color-safety-green) 5%, transparent), color-mix(in srgb, var(--color-ocean-deep) 3%, transparent)); cursor:pointer; font-family:inherit; text-align:left;"
+            onclick={() => selectedProject = project}>
             <div style="display:flex; align-items:center; gap:1rem;">
               <div style="font-size:2.5rem;">{project.icon}</div>
               <div class="flex-1">
@@ -112,7 +114,7 @@
               </div>
               <span style="font-size:1.5rem;">→</span>
             </div>
-          </div>
+          </button>
         {/each}
       {/if}
     </div>
