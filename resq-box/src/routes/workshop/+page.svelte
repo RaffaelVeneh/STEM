@@ -302,7 +302,7 @@
 
 <svelte:window onkeydown={handleKeydown} />
 
-<div class="h-full flex flex-col space-y-4" in:fly={{ y: 20, duration: 300 }}>
+<div class="h-full flex flex-col space-y-3" in:fly={{ y: 20, duration: 300 }} style="overflow: hidden;">
   <!-- Mission Header (shown when quest is active) -->
   {#if activeQuest}
     <div class="shrink-0 rounded-2xl p-4 flex items-center gap-4" style="background: linear-gradient(135deg, var(--color-ocean-deep), var(--color-ocean-wave));">
@@ -499,9 +499,9 @@
   </div>
 
   <!-- Main Workshop Area -->
-  <div class="flex-1 flex gap-4 min-h-0" style="overflow: hidden;">
+  <div class="flex-1 flex gap-4" style="min-height: 0; overflow: hidden;">
     <!-- Blockly Canvas per active tab -->
-    <div class="flex-1 min-w-0" style="position: relative; height: 100%;">
+    <div class="flex-1" style="position: relative; min-width: 0;">
       {#each $allTabs as tab}
         <div style="display: {activeTabId === tab.id ? 'block' : 'none'}; width: 100%; height: 100%; position: absolute; top: 0; left: 0; right: 0; bottom: 0;">
           <BlocklyWorkspace

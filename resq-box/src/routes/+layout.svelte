@@ -141,7 +141,7 @@
   </aside>
 
   <!-- Main Content -->
-  <main class="flex-1 overflow-y-auto bg-gradient-to-br from-siaga-belly to-ocean-foam/20 p-8">
+  <main class="flex-1 bg-gradient-to-br from-siaga-belly to-ocean-foam/20 p-8" style="overflow: hidden; min-height: 0;">
     {@render children()}
   </main>
 </div>
