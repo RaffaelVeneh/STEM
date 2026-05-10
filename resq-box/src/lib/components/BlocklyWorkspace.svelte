@@ -77,8 +77,6 @@
     onCodeGenerated(generateArduinoCode(workspace));
 
     return () => {
-      flyoutObserver?.disconnect();
-      clearTimeout(pollId);
       if (workspace) {
         workspace.dispose();
         workspace = null;
@@ -109,8 +107,7 @@
 
 <div
   bind:this={workspaceDiv}
-  class="w-full h-full min-h-[400px]"
-  style="min-height: 400px; height: 100%; width: 100%; border-radius: 1rem; overflow: hidden; border: 2px solid color-mix(in srgb, var(--color-ocean-foam, #A8DADC) 30%, transparent);"
+  style="width: 100%; height: 100%; min-height: 0; border-radius: 1rem; overflow: hidden; border: 2px solid color-mix(in srgb, var(--color-ocean-foam, #A8DADC) 30%, transparent);"
   role="application"
   aria-label="Blockly coding workspace"
 >

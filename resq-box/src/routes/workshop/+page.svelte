@@ -481,11 +481,11 @@
   </div>
 
   <!-- Main Workshop Area -->
-  <div class="flex-1 flex gap-4 min-h-0">
+  <div class="flex-1 flex gap-4 min-h-0" style="overflow: hidden;">
     <!-- Blockly Canvas per active tab -->
-    <div class="flex-1 min-w-0" style="position: relative;">
+    <div class="flex-1 min-w-0" style="position: relative; height: 100%;">
       {#each $allTabs as tab}
-        <div style="display: {activeTabId === tab.id ? 'block' : 'none'}; height: 100%;">
+        <div style="display: {activeTabId === tab.id ? 'block' : 'none'}; width: 100%; height: 100%; position: absolute; top: 0; left: 0; right: 0; bottom: 0;">
           <BlocklyWorkspace
             bind:this={workspaceRefs[tab.id]}
             onCodeGenerated={(code) => handleCodeGenerated(code)}
