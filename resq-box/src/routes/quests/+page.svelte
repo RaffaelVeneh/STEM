@@ -178,7 +178,7 @@
                 >
                   <div style="font-size:1.5rem; margin-bottom:0.25rem;">{quest.icon}</div>
                   <div style="font-family:var(--font-display); font-weight:700; font-size:0.75rem; color:var(--color-ocean-deep); margin-bottom:0.15rem;">
-                    {quest.subId === 'evakuasi' ? '🏃' : quest.subId === 'peringatan' ? '📢' : '🏘️'} {quest.subId === 'evakuasi' ? 'Evakuasi' : quest.subId === 'peringatan' ? 'Peringatan' : 'Desa'}
+                    {currentLang === 'id' ? quest.title : quest.titleEn}
                   </div>
                   <div style="display:flex; align-items:center; justify-content:center; gap:0.3rem;">
                     <span style="font-size:0.6rem; padding:0.15rem 0.45rem; border-radius:9999px; background:{quest.status==='completed'?'var(--color-safety-green)20':group.color}15; color:{quest.status==='completed'?'var(--color-safety-green)':group.color}; font-weight:600;">{quest.xp} XP</span>

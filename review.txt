@@ -1,0 +1,14 @@
+nanti levelnya dibikin sub level gitu, jadi misal
+lvl pertama gempa
+di dalam level gempa ini nanti ada sub level buat jalur evakuasi, sistem peringatan dini, dan desa tangguhnya
+trus lanjut ke level 2 misal gunung meletus
+sama nanti ada sub lvlnya disamain aja kyk gempa jadi ada sub lvl jalur evakuasi, sistem peringatan dini, dan desa tangguhnya
+
+trus nanti ada kyk projek akhirnya itu, nanti projek akhirnya pake 3 sesuai yg tadi bu tyas itu, pembuatan hardware dari yg tadi udah dibuat di softwarenya, jadi nanti siswa dibagi jadi 3 kelompok misal, tiap kelompok dpt masing masing gempa, banjir, dan gunung meletus, nah nanti tugas mereka bikin hardwarenya sesuai sama projek yg ada di aplikasinya itu yaitu gempa, banjir, sama gunung meletus, nanti ada langkah langkah detailnya, tapi sebelum bikin hardwarenya tetep bikin yg drag and drop codingnya gitu, tapi dibikin lebih kompleks dari yg level level tadi, baru nanti setelah bikin di aplikasinya baru sambungin ke hardware yg udh mereka susun sebelumnya, berarti nanti kita bikin langkah langkah menyusun hardwarenya juga
+
+oiya trus juga buat level levelnya ini nanti tambahin kyk langkah kerja yg detailnya, yg sekarang masih belum ada kyk langkah kerjanya, dibikin contohnya kyk gini
+1. tarik blok ini
+2. lalu sambungkan dengan blok ini
+3. dst
+
+gitu yak
