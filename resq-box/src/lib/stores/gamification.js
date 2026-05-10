@@ -49,3 +49,16 @@ export function completeQuest(questId, xpEarned) {
 export function addBadge(badge) {
   badges.update((b) => [...b, badge]);
 }
+
+// ─── Active Mission (sidebar mission panel) ───
+// When a user selects a quest, it's stored here. Sidebar reads it to show the mission panel.
+// Clicking the panel navigates to /workshop?tab=quest-{questId}
+export const activeMission = writable(null);
+
+export function setActiveMission(quest) {
+  activeMission.set(quest ? { ...quest } : null);
+}
+
+export function clearActiveMission() {
+  activeMission.set(null);
+}

@@ -1,36 +1,88 @@
 <script>
   import { fly } from 'svelte/transition';
   import { goto } from '$app/navigation';
+  import { onMount, onDestroy } from 'svelte';
   import BlocklyWorkspace from '$lib/components/BlocklyWorkspace.svelte';
   import { interpretWorkspace } from '$lib/blockly/interpreter.js';
   import { saveProject, loadProject } from '$lib/stores/db.js';
   import { validateQuest } from '$lib/quests/validation.js';
   import { getQuest } from '$lib/quests/definitions.js';
-  import { completeQuest } from '$lib/stores/gamification.js';
+  import { completeQuest, activeMission, setActiveMission } from '$lib/stores/gamification.js';
+  import { workspaceTabs, activeWorkspaceTab, allTabs } from '$lib/stores/workspaceTabs.js';
+  import { saveDraft, restoreDrafts, deleteDraft, loadDraft } from '$lib/stores/draft.js';
   import { page } from '$app/stores';
 
-  let generatedCode = $state('');
-  let workspaceRef = $state(null);
+  let workspaceRefs = $state({});      // tabId → BlocklyWorkspace instance
+  let tabCodes = $state({});           // tabId → generated Arduino C code
+  let activeTabId = $state(null);
   let isRunning = $state(false);
   let saveStatus = $state('');
   let simMode = $state(true);
 
-  // Quest mode
+  // Quest mode (derived from active tab)
   let activeQuest = $state(null);
   let validationResult = $state(null);
   let showCelebration = $state(false);
 
+  // Derive activeQuest from the active tab
   $effect(() => {
-    const questId = $page.url.searchParams.get('quest');
-    if (questId) {
-      activeQuest = getQuest(parseInt(questId));
-      validationResult = null;
-      showCelebration = false;
+    const tab = $activeWorkspaceTab;
+    if (tab && tab.questId) {
+      activeQuest = getQuest(tab.questId);
+    } else if ($activeMission) {
+      const q = $activeMission;
+      workspaceTabs.openTab(`Level ${q.id}`, q.icon || '🎯', q.id);
+      activeQuest = q;
+    } else {
+      activeQuest = null;
     }
   });
 
+  // Restore drafts & open default tabs on mount
+  onMount(async () => {
+    await restoreDrafts();
+    const tabs = workspaceTabs.getAllTabs();
+    if (tabs.length === 0) {
+      workspaceTabs.openTab('Workshop', '🧩', null);
+    }
+    const tabParam = $page.url.searchParams.get('tab');
+    if (tabParam) {
+      const questIdMatch = tabParam.match(/^quest-(\d+)$/);
+      if (questIdMatch) {
+        const qId = parseInt(questIdMatch[1]);
+        const quest = getQuest(qId);
+        if (quest) {
+          setActiveMission(quest);
+          workspaceTabs.openTab(`Level ${qId}`, quest.icon || '🎯', qId);
+        }
+      }
+    }
+  });
+
+  // Auto-save drafts when leaving
+  onDestroy(() => {
+    const tabs = workspaceTabs.getAllTabs();
+    for (const tab of tabs) {
+      if (tab.xml && tab.dirty) {
+        saveDraft(tab.id, tab.xml, tab.code, tab.questId);
+      }
+    }
+  });
+
+  // Track active tab ID
+  $effect(() => {
+    activeTabId = $workspaceTabs.activeTabId;
+  });
+
   function handleCodeGenerated(code) {
-    generatedCode = code;
+    if (activeTabId) {
+      tabCodes = { ...tabCodes, [activeTabId]: code };
+      workspaceTabs.saveTabCode(activeTabId, code);
+    }
+  }
+
+  function getWorkspaceRef(tabId) {
+    return workspaceRefs[tabId] || null;
   }
 
   // Simulator context — WRITES TO VISIBLE LOG, not console
@@ -109,12 +161,13 @@
   };
 
   async function handleRun() {
-    if (!workspaceRef || isRunning) return;
+    const ref = getWorkspaceRef(activeTabId);
+    if (!ref || isRunning) return;
     isRunning = true;
     simLog = [];
     addLog('▶️ SIMULASI DIMULAI', 'info');
     try {
-      const ws = workspaceRef.getWorkspace();
+      const ws = ref.getWorkspace();
       if (!ws) return;
       await interpretWorkspace(ws, sim);
       addLog('✅ SIMULASI SELESAI', 'info');
@@ -126,11 +179,12 @@
   }
 
   async function handleSave() {
-    if (!workspaceRef) return;
+    const ref = getWorkspaceRef(activeTabId);
+    if (!ref) return;
     saveStatus = 'saving';
     try {
-      const xml = workspaceRef.getWorkspaceXml();
-      await saveProject('workspace-main', { name: 'Proyek Workshop', xml, code: generatedCode });
+      const xml = ref.getWorkspaceXml();
+      await saveProject('workspace-main', { name: 'Proyek Workshop', xml, code: tabCodes[activeTabId] || '' });
       saveStatus = 'saved';
       setTimeout(() => (saveStatus = ''), 2000);
     } catch (e) {
@@ -139,24 +193,29 @@
   }
 
   async function handleLoad() {
-    if (!workspaceRef) return;
+    const ref = getWorkspaceRef(activeTabId);
+    if (!ref) return;
     try {
-      const project = await loadProject('workspace-main');
-      if (project?.xml) workspaceRef.loadWorkspaceXml(project.xml);
+      const draft = await loadDraft(activeTabId);
+      if (draft?.xml) ref.loadWorkspaceXml(draft.xml);
     } catch (e) {
       console.error('Load failed:', e);
     }
   }
 
   function handleClear() {
-    workspaceRef?.clearWorkspace();
+    const ref = getWorkspaceRef(activeTabId);
+    ref?.clearWorkspace();
     validationResult = null;
     simLog = [];
+    workspaceTabs.saveTabXml(activeTabId, null);
+    workspaceTabs.saveTabCode(activeTabId, '');
   }
 
   function handleExportCode() {
-    if (!generatedCode || generatedCode.startsWith('// Seret blok')) return;
-    const blob = new Blob([generatedCode], { type: 'text/plain' });
+    const code = tabCodes[activeTabId] || '';
+    if (!code || code.startsWith('// Seret blok')) return;
+    const blob = new Blob([code], { type: 'text/plain' });
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
     a.download = 'resqbox_project.ino';
@@ -164,16 +223,32 @@
     URL.revokeObjectURL(a.href);
   }
 
-  // ─── Quest ───
+  function handleNewTab() {
+    workspaceTabs.openTab('Workshop', '🧩', null);
+  }
+
+  function handleCloseTab(tabId, e) {
+    e.stopPropagation();
+    deleteDraft(tabId);
+    workspaceTabs.closeTab(tabId);
+  }
+
+  function handleSelectTab(tabId) {
+    workspaceTabs.setActiveTab(tabId);
+  }
+
+  // ─── Quest validation ───
   function handleValidateQuest() {
-    if (!workspaceRef || !activeQuest) return;
-    const ws = workspaceRef.getWorkspace();
+    const ref = getWorkspaceRef(activeTabId);
+    if (!ref || !activeQuest) return;
+    const ws = ref.getWorkspace();
     validationResult = ws ? validateQuest(ws, activeQuest) : null;
   }
 
   function handleCompleteQuest() {
-    if (!workspaceRef || !activeQuest) return;
-    const ws = workspaceRef.getWorkspace();
+    const ref = getWorkspaceRef(activeTabId);
+    if (!ref || !activeQuest) return;
+    const ws = ref.getWorkspace();
     const result = ws ? validateQuest(ws, activeQuest) : null;
     validationResult = result;
     if (result?.passed) {
@@ -181,8 +256,8 @@
       showCelebration = true;
       saveProject(`quest-done-${activeQuest.id}`, {
         name: `Misi ${activeQuest.id} Selesai`,
-        xml: workspaceRef.getWorkspaceXml(),
-        code: generatedCode,
+        xml: ref.getWorkspaceXml(),
+        code: tabCodes[activeTabId] || '',
         doneAt: new Date().toISOString(),
       });
       setTimeout(() => { showCelebration = false; goto('/quests'); }, 4000);
@@ -258,7 +333,41 @@
       </div>
     </div>
   {/if}
-  <!-- Toolbar -->
+
+  <!-- Tab Bar -->
+  <div class="shrink-0 flex items-center gap-1 overflow-x-auto pb-1" style="border-bottom:2px solid color-mix(in srgb, var(--color-ocean-foam) 30%, transparent);">
+    {#each $allTabs as tab}
+      <button
+        class="shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-t-xl text-xs font-display font-semibold transition-all duration-150 cursor-pointer"
+        style="
+          background: {activeTabId === tab.id ? '#fff' : 'transparent'};
+          color: {activeTabId === tab.id ? 'var(--color-ocean-deep)' : 'var(--color-earth-brown)'};
+          border: 2px solid {activeTabId === tab.id ? 'color-mix(in srgb, var(--color-ocean-foam) 50%, transparent)' : 'transparent'};
+          border-bottom: {activeTabId === tab.id ? '2px solid #fff' : '2px solid transparent'};
+          margin-bottom: -2px;
+        "
+        onclick={() => handleSelectTab(tab.id)}
+      >
+        <span class="text-sm">{tab.icon}</span>
+        <span class="max-w-[120px] truncate">{tab.label}</span>
+        {#if tab.questId}
+          <span style="font-size:0.55rem; padding:0.05rem 0.35rem; border-radius:9999px; background:color-mix(in srgb, var(--color-safety-orange) 15%, transparent); color:var(--color-safety-orange); font-weight:700;">L{tab.questId}</span>
+        {/if}
+        <span
+          class="ml-1 w-4 h-4 rounded-full flex items-center justify-center text-[0.55rem] hover:bg-safety-red/10 cursor-pointer"
+          style="color: var(--color-earth-brown); opacity:0.5;"
+          onclick={(e) => handleCloseTab(tab.id, e)}
+          title="Tutup tab"
+        >✕</span>
+      </button>
+    {/each}
+    <button
+      class="shrink-0 w-7 h-7 rounded-lg flex items-center justify-center text-sm cursor-pointer transition-all hover:scale-110"
+      style="background: color-mix(in srgb, var(--color-ocean-foam) 20%, transparent); color: var(--color-ocean-deep);"
+      onclick={handleNewTab}
+      title="Tab baru"
+    >+</button>
+  </div>
   <div style="display:flex; align-items:center; justify-content:space-between; flex-shrink:0; padding:0.75rem 1.25rem; border-radius:1.5rem; background: linear-gradient(135deg, var(--color-ocean-deep) 0%, var(--color-ocean-wave) 60%, #5BA4CF 100%); border:2px solid rgba(255,255,255,0.12); box-shadow:0 6px 24px rgba(29,53,87,0.25);">
     <div style="display:flex; align-items:center; gap:0.75rem;">
       <h2 style="font-family:var(--font-display); font-weight:800; font-size:1.25rem; color:#fff; margin:0;">
@@ -373,12 +482,16 @@
 
   <!-- Main Workshop Area -->
   <div class="flex-1 flex gap-4 min-h-0">
-    <!-- Blockly Canvas — relative wrapper so sensor float is anchored to it -->
+    <!-- Blockly Canvas per active tab -->
     <div class="flex-1 min-w-0" style="position: relative;">
-      <BlocklyWorkspace
-        bind:this={workspaceRef}
-        onCodeGenerated={handleCodeGenerated}
-      />
+      {#each $allTabs as tab}
+        <div style="display: {activeTabId === tab.id ? 'block' : 'none'}; height: 100%;">
+          <BlocklyWorkspace
+            bind:this={workspaceRefs[tab.id]}
+            onCodeGenerated={(code) => handleCodeGenerated(code)}
+          />
+        </div>
+      {/each}
 
       <!-- FLOATING SENSOR BOX — top-right of the canvas -->
       <div style="
@@ -447,8 +560,8 @@
             onmouseleave={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.08)'}
           >📥 .ino</button>
         </div>
-        {#if generatedCode && !generatedCode.startsWith('// Seret blok')}
-          <pre style="font-size:0.7rem; color:var(--color-ocean-foam); font-family:'Consolas','Courier New',monospace; white-space:pre-wrap; margin:0; line-height:1.45; opacity:0.9; flex:1; overflow-y:auto;">{generatedCode}</pre>
+        {#if tabCodes[activeTabId] && !tabCodes[activeTabId].startsWith('// Seret blok')}
+          <pre style="font-size:0.7rem; color:var(--color-ocean-foam); font-family:'Consolas','Courier New',monospace; white-space:pre-wrap; margin:0; line-height:1.45; opacity:0.9; flex:1; overflow-y:auto;">{tabCodes[activeTabId]}</pre>
         {:else}
           <div style="flex:1; display:flex; align-items:center; justify-content:center; text-align:center; padding:1rem;">
             <p style="font-size:0.75rem; color:var(--color-ocean-foam); opacity:0.35; margin:0; font-style:italic; line-height:1.5;">

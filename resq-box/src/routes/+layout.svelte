@@ -1,7 +1,9 @@
 <script>
   import '../app.css';
   import { page } from '$app/stores';
+  import { goto } from '$app/navigation';
   import { fly } from 'svelte/transition';
+  import { activeMission, clearActiveMission } from '$lib/stores/gamification.js';
 
   let { children } = $props();
 
@@ -21,6 +23,18 @@
 
   function getLabel(item) {
     return currentLang === 'id' ? item.label : item.enLabel;
+  }
+
+  function handleMissionClick() {
+    const mission = $activeMission;
+    if (mission) {
+      // Navigate to workshop, open the mission's tab
+      goto(`/workshop?tab=quest-${mission.id}`);
+    }
+  }
+
+  function handleDismissMission() {
+    clearActiveMission();
   }
 </script>
 
@@ -65,6 +79,47 @@
         <p class="text-xs mt-1">Klik misi untuk mulai belajar!</p>
       </div>
     </div>
+
+    <!-- Active Mission Panel (bottom-left, sticky) -->
+    {#if $activeMission}
+      <div class="px-4 pb-2 border-t-2 border-ocean-foam/20">
+        <div
+          class="w-full text-left rounded-xl p-3 cursor-pointer border-2 transition-all duration-200 hover:shadow-md relative"
+          style="
+            background: linear-gradient(135deg, color-mix(in srgb, var(--color-safety-orange) 8%, transparent), color-mix(in srgb, var(--color-safety-yellow) 5%, transparent));
+            border-color: color-mix(in srgb, var(--color-safety-orange) 35%, transparent);
+          "
+          onclick={handleMissionClick}
+          onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleMissionClick(); } }}
+          role="button"
+          tabindex="0"
+        >
+          <div class="flex items-center gap-2">
+            <span class="text-xl">{$activeMission.icon || '🎯'}</span>
+            <div class="flex-1 min-w-0">
+              <p class="font-display font-semibold text-xs text-safety-orange leading-tight truncate">
+                {$activeMission.title || 'Misi Aktif'}
+              </p>
+              <p class="text-[0.6rem] text-earth-brown/60 mt-0.5">
+                {$activeMission.difficulty || '⭐'} · {$activeMission.xp || 0} XP
+              </p>
+            </div>
+            <span
+              class="shrink-0 w-5 h-5 rounded-full flex items-center justify-center text-[0.5rem] cursor-pointer hover:bg-safety-red/20"
+              style="border: 1px solid rgba(0,0,0,0.1); background: rgba(0,0,0,0.03);"
+              onclick={(e) => { e.stopPropagation(); handleDismissMission(); }}
+              onkeydown={(e) => { if (e.key === 'Enter') { e.stopPropagation(); handleDismissMission(); } }}
+              role="button"
+              tabindex="0"
+              title="Lepas misi"
+            >✕</span>
+          </div>
+          <p class="text-[0.6rem] text-safety-orange/70 mt-1" style="text-decoration: underline; text-underline-offset: 2px;">
+            Klik untuk buka di Workshop →
+          </p>
+        </div>
+      </div>
+    {/if}
 
     <!-- Lang Toggle -->
     <div class="p-4 flex justify-center gap-2 border-t-2 border-ocean-foam/20">

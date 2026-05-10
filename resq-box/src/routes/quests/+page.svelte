@@ -2,7 +2,7 @@
   import { fly } from 'svelte/transition';
   import { goto } from '$app/navigation';
   import { QUESTS } from '$lib/quests/definitions.js';
-  import { questStatus } from '$lib/stores/gamification.js';
+  import { questStatus, setActiveMission } from '$lib/stores/gamification.js';
 
   let quests = $state(QUESTS.map(q => ({ ...q, status: 'locked' })));
   let selectedQuest = $state(null);
@@ -114,8 +114,10 @@
   }
 
   function startQuest(quest) {
-    // Navigate to workshop with quest context
-    goto(`/workshop?quest=${quest.id}`);
+    // Store active mission in sidebar — it stays pinned there
+    setActiveMission(quest);
+    // Navigate to workshop, opening the quest's tab
+    goto(`/workshop?tab=quest-${quest.id}`);
   }
 
   function handleGroupKeydown(e, group) {
